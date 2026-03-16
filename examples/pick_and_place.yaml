@@ -1,0 +1,42 @@
+name: humanoid_pick_and_place
+metadata:
+  author: optisim
+  scenario: demo
+robot:
+  model: demo_humanoid
+world:
+  gravity: [0.0, 0.0, -9.81]
+  surfaces:
+    - name: table
+      pose:
+        position: [0.55, 0.0, 0.74]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.90, 0.60, 0.05]
+    - name: shelf
+      pose:
+        position: [0.60, -0.25, 1.02]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.35, 0.25, 0.04]
+  objects:
+    - name: box
+      pose:
+        position: [0.42, -0.12, 0.81]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.08, 0.08, 0.12]
+      mass_kg: 0.75
+actions:
+  - type: reach
+    target: box
+    end_effector: right_palm
+  - type: grasp
+    target: box
+    end_effector: right_gripper
+  - type: move
+    target: box
+    end_effector: right_palm
+    destination: [0.58, -0.20, 1.08]
+    speed: 0.28
+  - type: place
+    target: box
+    end_effector: right_palm
+    support: shelf
