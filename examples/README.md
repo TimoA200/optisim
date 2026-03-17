@@ -9,6 +9,10 @@ Bundled examples cover the main manipulation flows currently modeled by `optisim
 - `open_door.yaml` / `open_door.py`: reach a handle target, rotate it, and pull to model a door-opening interaction.
 - `stack_blocks.yaml` / `stack_blocks.py`: execute multiple coordinated transfers to stack blocks in sequence.
 - `urdf_demo.py`: load a bundled URDF robot, solve a reach target with IK, and animate the result in the terminal.
+- `scene_graph_demo.py`: build a semantic kitchen scene, query relations, and convert the result to TAMP predicates.
+- `primitive_sequence_demo.py`: execute a reach, grasp, and place sequence over a kitchen scene and print the final symbolic state.
+- `benchmark_run.py`: run the 8-task default benchmark suite, print a results table, and export a Markdown report.
+- `curriculum_training_demo.py`: train through the benchmark curriculum, show promotions, and render an ASCII learning chart.
 
 ## Run an Example
 
@@ -21,4 +25,8 @@ Or use the Python scripts directly:
 ```bash
 python examples/stack_blocks.py
 python examples/urdf_demo.py
+python examples/scene_graph_demo.py
+python examples/primitive_sequence_demo.py
+python examples/benchmark_run.py
+python examples/curriculum_training_demo.py
 ```
