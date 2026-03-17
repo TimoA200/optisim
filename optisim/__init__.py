@@ -10,6 +10,7 @@ from . import benchmark as benchmark
 from . import contact as contact
 from . import curriculum as curriculum
 from . import dexterous as dexterous
+from . import energy as energy
 from . import export as export
 from . import footstep as footstep
 from . import language as language
@@ -45,17 +46,8 @@ from optisim.contact import (
     compute_normal_force,
     sphere_sphere_contact,
 )
-from optisim.dynamics import (
-    ConstraintSet,
-    ConstraintViolation,
-    DynamicsReport,
-    DynamicsValidator,
-    JointTorqueLimit,
-    PayloadConstraint,
-    RigidBodyState,
-    TaskEnergyProfile,
-    WorkspaceConstraint,
-)
+from optisim.dynamics import ConstraintSet, ConstraintViolation, DynamicsReport, DynamicsValidator, JointTorqueLimit, PayloadConstraint, RigidBodyState, WorkspaceConstraint
+from optisim.energy import EnergyBudget, EnergyEstimator, JointPowerModel, MotorEfficiencyModel, TaskEnergyProfile
 from optisim.dexterous import DexterousController, Finger, FingerCommand, FingerControlMode, FingerJoint, Hand, TactileCell, TactileSensor
 from optisim.grasp import (
     ContactPatch,
@@ -204,6 +196,7 @@ __all__ = [
     "contact",
     "curriculum",
     "dexterous",
+    "energy",
     "export",
     "footstep",
     "language",
@@ -267,6 +260,10 @@ __all__ = [
     "FingerControlMode",
     "FingerCommand",
     "DexterousController",
+    "JointPowerModel",
+    "MotorEfficiencyModel",
+    "EnergyEstimator",
+    "EnergyBudget",
     "ContactPatch",
     "ContactPoint",
     "GraspExecutor",
@@ -432,4 +429,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.20.0"
+__version__ = "0.21.0"

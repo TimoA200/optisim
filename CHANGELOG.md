@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.21.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.energy`: `JointPowerModel`, `MotorEfficiencyModel`, `EnergyEstimator`, `EnergyBudget`, and `TaskEnergyProfile`.
+- Added torque-speed efficiency interpolation, cumulative energy budgeting, and task-level power profiling helpers.
+- Added pytest coverage for energy estimation, efficiency lookup behavior, budgeting, and profile integration edge cases.
+
 ## [0.20.0] - 2026-03-17
 
 ### Added
