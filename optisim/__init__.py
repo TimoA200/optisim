@@ -11,6 +11,7 @@ from . import curriculum as curriculum
 from . import dexterous as dexterous
 from . import export as export
 from . import footstep as footstep
+from . import language as language
 from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
@@ -85,6 +86,7 @@ from optisim.lfd import (
     DemonstrationRecorder,
     DynamicMovementPrimitive,
 )
+from optisim.language import GroundedInstruction, Grounder, InstructionParser, InstructionTemplate, ParsedIntent
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
 from optisim.perception import PerceptionPipeline, PointCloud, PoseEstimate, build_perception_pipeline
@@ -202,6 +204,7 @@ __all__ = [
     "dexterous",
     "export",
     "footstep",
+    "language",
     "retarget",
     "worldmodel",
     "BatchConfig",
@@ -295,6 +298,11 @@ __all__ = [
     "DemonstrationPlayer",
     "DemonstrationRecorder",
     "DynamicMovementPrimitive",
+    "ParsedIntent",
+    "InstructionParser",
+    "GroundedInstruction",
+    "Grounder",
+    "InstructionTemplate",
     "AssignmentValidator",
     "Dependency",
     "MultiRobotRecord",
@@ -416,4 +424,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.18.0"
+__version__ = "0.19.0"

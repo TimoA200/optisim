@@ -27,6 +27,7 @@
 - ✅ `optisim.behavior`: behavior tree execution with YAML loading for structured task logic
 - ✅ `optisim.dynamics`: rigid-body dynamics, energy analysis, and joint/payload/workspace constraints
 - ✅ `optisim.grasp`: contact-based grasp planning, force-closure checks, friction-cone checks, and gripper presets
+- ✅ `optisim.language`: deterministic natural-language instruction parsing, scene-aware symbol grounding, and primitive-sequence generation
 - ✅ `optisim.wbc`: whole-body control with hierarchical null-space task stacking and damped least-squares solves
 - ✅ `optisim.reactive`: reactive manipulation control with contact-phase FSMs and sensor-driven velocity scaling
 - ✅ `optisim.mpc`: linear inverted-pendulum MPC for CoM balance, ZMP regulation, and simple humanoid footstep planning
