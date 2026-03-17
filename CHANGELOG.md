@@ -4,84 +4,105 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.15.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.contact`: pure-Python contact mechanics helpers with sphere-sphere, box-sphere, and AABB contact generation.
+- Added `ContactForceModel`, `ContactParams`, and `ContactWorld` for spring-damper normal forces, Coulomb friction, and small contact-world stepping.
+- Added pytest coverage for contact geometry, contact-force computation, and contact-world integration behavior.
+
+## [0.14.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.worldmodel`: `StateEncoder`, `WorldModelNet`, `WorldModelTrainer`, `ModelPredictivePlanner`, and `WorldModelCollector`.
+- Added lightweight learned transition prediction using a pure-numpy MLP with backpropagation.
+- Added random-shooting model-predictive planning over primitive sequences.
+
+## [0.13.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.curriculum`: `TaskScheduler`, `CurriculumTrainer`, and curriculum callbacks for logging, history capture, and early stopping.
+- Added promotion and demotion logic for progressive task-difficulty scheduling.
+
+## [0.12.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.export`: JSON, CSV, mocap CSV, ROS2-bag JSON, URDF annotation, and Markdown export workflows.
+- Added export support for trajectories, scenes, and benchmark results.
+
+## [0.11.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.benchmark`: benchmark suite with 8 built-in tasks, `BenchmarkEvaluator`, and `BenchmarkReporter`.
+- Added benchmark execution support to the CLI.
+
+## [0.10.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.primitives`: `Reach`, `Grasp`, `Place`, `Push`, `Handover`, and `Navigate` motion primitives.
+- Added `PrimitiveExecutor` with scene-effect application for semantic action execution.
+
+## [0.9.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.scene`: `SceneNode`, `SceneRelation`, `SceneGraph`, `SceneBuilder`, and `SceneQuery`.
+- Added semantic scene-graph integration with TAMP workflows.
+
+## [0.8.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.rl`: PPO reinforcement learning with `ActorCritic`, GAE `RolloutBuffer`, and a Gym wrapper.
+- Added finite-difference gradient support for pure-numpy RL optimization.
+
 ## [0.7.0] - 2026-03-17
 
 ### Added
 
-- Added `optisim.server`: a FastAPI-based REST API with health, robot preset listing, synthetic simulation, TAMP planning, LfD recording/generation, and an embedded dashboard.
-- Added `optisim-server` as a console script entry point for serving the API via Uvicorn on port 8080.
-- Added API-focused pytest coverage for server endpoints, validation failures, and dashboard delivery.
-
-### Changed
-
-- Kept `optisim.server` out of `optisim.__init__` so importing the package does not require optional web dependencies.
-- Expanded the `web` optional dependency group to include `httpx` for FastAPI `TestClient` support.
+- Added `optisim.policy`: neural behavioral cloning with a pure-numpy MLP and Adam optimizer.
+- Added stateless and recurrent policy executors.
 
 ## [0.6.0] - 2026-03-17
 
 ### Added
 
-- Added `optisim.tamp`: lightweight task and motion planning utilities with symbolic predicates, PDDL-style operators, BFS planning, geometric feasibility checks, and a bundled household manipulation domain.
-- Added `TAMPPlanner` and `TAMPPlan` for integrating symbolic search with simple geometric backtracking over candidate plans.
-- Added `examples/tamp_demo.py` demonstrating a household cup transfer from table to counter.
-- Added pytest coverage for symbolic planning, geometric validation, household-domain operator integrity, and end-to-end TAMP planning.
+- Added `optisim.tamp`: symbolic task planner using BFS, geometric feasibility checks, and `HouseholdDomain`.
 
 ## [0.5.0] - 2026-03-17
 
 ### Added
 
-- Added `optisim.lfd`: demonstration recording, JSON serialization, DMP-based trajectory learning, replay, interpolation, and goal adaptation utilities.
-- Added a bundled `examples/lfd_demo.py` workflow showing recording, DMP training, and retargeted generation.
-- Added pytest coverage for demonstration recording, persistence, library management, DMP generation, replay, interpolation, and edge cases.
+- Added `optisim.lfd`: Learning from Demonstration with DMP support.
+- Added `DemonstrationRecorder`, `DemonstrationLibrary`, and `DemonstrationPlayer`.
 
 ## [0.4.0] - 2026-03-17
 
 ### Added
 
-- Added `optisim.mpc`: linear inverted-pendulum MPC for humanoid CoM balance and locomotion.
-- Added `FootstepPlanner` and `FootstepPlan` helpers for simple alternating humanoid walking patterns.
-- Added `optisim.estimation`: EKF-based humanoid state estimation with IMU, encoder, contact, and vision updates.
-- Added `StateEstimationPipeline`, `RobotState`, and an IMU dead-reckoning utility plus a bundled estimation demo.
-- Added a bundled `examples/mpc_balance.py` example and MPC-focused pytest coverage.
-- Added `optisim.bimanual`: coordinated dual-arm task planning, cooperative wrench sharing, and common bimanual task presets.
-- Added `optisim.perception`: depth-camera point-cloud processing, lightweight surface/object detection, pose estimation, ICP refinement, and grasp-target conversion.
+- Added behavior trees, dynamics, grasp analysis, whole-body control, safety monitoring, and sensor simulation.
 
 ## [0.3.0] - 2026-03-17
 
 ### Added
 
-- Added `optisim.wbc`: whole-body control with hierarchical null-space task stacking.
-- Added `optisim.trajopt`: trajectory optimization with cubic splines and velocity/acceleration profiles.
-- Added `optisim.reactive`: reactive manipulation controller with contact-phase FSM and sensor-driven velocity scaling.
-
-### Changed
-
-- Test count updated to 347 passing.
+- Added motion planning with RRT, RRT-Connect, and path smoothing.
+- Added trajectory optimization with cubic splines.
 
 ## [0.2.0] - 2026-03-17
 
 ### Added
 
-- Built-in 31-DOF humanoid robot model with FK, damped-least-squares IK, and URDF loading support.
-- Deterministic step-based simulation engine with task validation, execution recording, and replay.
-- Task authoring APIs for action primitives, fluent composition, YAML/JSON task definitions, and a built-in task library.
-- Motion-planning utilities including RRT, RRT-Connect, and path smoothing.
-- Behavior-tree execution with YAML-defined structured task logic.
-- Grasp planning, contact analysis, force-closure checks, and reusable gripper presets.
-- Multi-robot coordination, dependency-aware task scheduling, and shared-world execution.
-- Safety monitoring, sensor simulation, lightweight dynamics analysis, analytics, and Gymnasium integration.
-- Terminal, matplotlib, and web visualization backends.
-- Expanded integration coverage for end-to-end execution, CLI flows, IK/FK consistency, and recording replay.
-
-### Changed
-
-- Improved task-file parsing and schema validation so malformed YAML/JSON surfaces actionable errors.
-- Improved IK failure reporting to distinguish reachability, joint-limit, and solver-stall cases.
-- Standardized optional dependency guidance for terminal and web visualization imports.
-- Refreshed packaging metadata, optional dependency groups, and public-release documentation.
+- Added a 31-DOF humanoid robot model, URDF loading, Jacobian IK, simulation engine, and visualization support.
 
 ## [0.1.0] - 2026-03-17
 
 ### Added
 
-- Initial public alpha release of `optisim` with core task planning, humanoid simulation, and CLI support.
+- Initial release with core task authoring via `ActionPrimitive`, `TaskComposer`, and `TaskDefinition`.

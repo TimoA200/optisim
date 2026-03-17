@@ -6,6 +6,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 
 from . import scene as scene
 from . import benchmark as benchmark
+from . import contact as contact
 from . import curriculum as curriculum
 from . import export as export
 from . import worldmodel as worldmodel
@@ -27,6 +28,17 @@ from optisim.curriculum import (
     LoggingCallback as CurriculumLoggingCallback,
     TaskRecord,
     TaskScheduler,
+)
+from optisim.contact import (
+    ContactForceModel,
+    ContactPair,
+    ContactParams,
+    ContactWorld,
+    aabb_aabb_contact,
+    box_sphere_contact,
+    compute_friction_force,
+    compute_normal_force,
+    sphere_sphere_contact,
 )
 from optisim.dynamics import (
     ConstraintSet,
@@ -180,6 +192,7 @@ __all__ = [
     "analyze_trajectory",
     "compare_trajectories",
     "benchmark",
+    "contact",
     "curriculum",
     "export",
     "worldmodel",
@@ -214,6 +227,15 @@ __all__ = [
     "CurriculumLoggingCallback",
     "TaskRecord",
     "TaskScheduler",
+    "ContactPair",
+    "ContactParams",
+    "ContactForceModel",
+    "ContactWorld",
+    "sphere_sphere_contact",
+    "box_sphere_contact",
+    "aabb_aabb_contact",
+    "compute_normal_force",
+    "compute_friction_force",
     "ConstraintSet",
     "ConstraintViolation",
     "DynamicsReport",
@@ -372,4 +394,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"
