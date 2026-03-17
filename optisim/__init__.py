@@ -3,6 +3,25 @@
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
+from optisim.grasp import (
+    ContactPatch,
+    ContactPoint,
+    GraspExecutor,
+    GraspPlanner,
+    GraspPose,
+    GraspResult,
+    Gripper,
+    GripperType,
+    default_parallel_jaw,
+    default_suction,
+    default_three_finger,
+    force_closure,
+    friction_cone_check,
+    grasp_wrench_space,
+    min_resisted_wrench,
+    slip_margin,
+    surface_contacts,
+)
 from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
@@ -19,6 +38,23 @@ __all__ = [
     "ActionPrimitive",
     "TaskComposer",
     "TaskDefinition",
+    "ContactPatch",
+    "ContactPoint",
+    "GraspExecutor",
+    "GraspPlanner",
+    "GraspPose",
+    "GraspResult",
+    "Gripper",
+    "GripperType",
+    "default_parallel_jaw",
+    "default_suction",
+    "default_three_finger",
+    "force_closure",
+    "friction_cone_check",
+    "grasp_wrench_space",
+    "min_resisted_wrench",
+    "slip_margin",
+    "surface_contacts",
     "TaskCatalog",
     "AssignmentValidator",
     "Dependency",

@@ -12,6 +12,7 @@ from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
+from optisim.grasp import GraspExecutor, GraspPlanner, Gripper, GripperType, default_parallel_jaw, default_suction, default_three_finger
 from optisim.library import TaskCatalog
 from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner
@@ -113,6 +114,18 @@ def build_parser() -> argparse.ArgumentParser:
     multi_parser = subparsers.add_parser("multi", help="run a multi-robot coordination scenario")
     multi_parser.add_argument("scenario_file", nargs="?", type=Path, default=Path("examples/multi_robot_warehouse.yaml"))
 
+    grasp_parser = subparsers.add_parser("grasp", help="plan grasps for objects in a task file")
+    grasp_parser.add_argument("task_file", type=Path)
+    grasp_parser.add_argument(
+        "--gripper",
+        choices=("parallel_jaw", "suction", "three_finger", "multi_finger"),
+        default="parallel_jaw",
+    )
+    grasp_parser.add_argument("--object", dest="object_name", help="limit planning to a single object in the world")
+    grasp_parser.add_argument("--top-k", type=int, default=5)
+    grasp_parser.add_argument("--visualize", action="store_true")
+    grasp_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
+
     return parser
 
 
@@ -155,6 +168,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "multi":
         return _run_multi(args)
+
+    if args.command == "grasp":
+        return _run_grasp(args)
 
     task = TaskDefinition.from_file(args.task_file)
     return _execute_task_definition(task, args)
@@ -541,3 +557,73 @@ def _run_multi(args: argparse.Namespace) -> int:
                 f"{collision.robot_b}.{collision.link_b} distance={collision.distance:.3f}m"
             )
     return 0
+
+
+def _run_grasp(args: argparse.Namespace) -> int:
+    task = TaskDefinition.from_file(args.task_file)
+    world = WorldState.from_dict(task.world)
+    robot = _load_robot(task.robot)
+    planner = GraspPlanner(robot=robot)
+    gripper = _gripper_from_name(args.gripper)
+    object_names = [args.object_name] if args.object_name else sorted(world.objects)
+    if not object_names:
+        print("no objects available for grasp planning")
+        return 1
+
+    best_object = None
+    best_grasp = None
+    best_score = float("-inf")
+    for object_name in object_names:
+        if object_name not in world.objects:
+            print(f"unknown object '{object_name}'")
+            return 1
+        obj = world.objects[object_name]
+        grasps = planner.plan_grasps(obj, gripper, n_candidates=args.top_k)
+        print(f"object: {object_name}")
+        if not grasps:
+            print("  no feasible grasps")
+            continue
+        for index, grasp in enumerate(grasps, start=1):
+            print(
+                f"  {index}. score={grasp.quality_score:.4f} "
+                f"pos={grasp.position.round(3).tolist()} "
+                f"aperture={grasp.aperture:.3f} "
+                f"contacts={len(grasp.contact_points)}"
+            )
+        if grasps[0].quality_score > best_score:
+            best_object = obj
+            best_grasp = grasps[0]
+            best_score = grasps[0].quality_score
+
+    if args.visualize and best_object is not None and best_grasp is not None:
+        visualizer = _build_visualizer(args)
+        engine = ExecutionEngine(robot=robot, world=world)
+        executor = GraspExecutor()
+        demo_task = TaskDefinition(name=f"grasp_plan_{best_object.name}", actions=[], world=task.world, robot=task.robot)
+        try:
+            if visualizer is not None:
+                visualizer.start_task(demo_task, world, robot)
+            result = executor.execute_grasp(engine, robot, best_grasp, best_object)
+            if visualizer is not None:
+                visualizer.render(world, robot)
+                visualizer.finish(demo_task, world, robot, [])
+            print(
+                f"executed best grasp on '{best_object.name}': "
+                f"success={result.success} stability={result.stability_score:.4f} slip={result.slip_detected}"
+            )
+        finally:
+            if isinstance(visualizer, WebVisualizer):
+                visualizer.close()
+
+    return 0
+
+
+def _gripper_from_name(name: str) -> Gripper:
+    normalized = name.lower()
+    if normalized == GripperType.PARALLEL_JAW.value:
+        return default_parallel_jaw()
+    if normalized == GripperType.SUCTION.value:
+        return default_suction()
+    if normalized in {GripperType.THREE_FINGER.value, "multi_finger"}:
+        return default_three_finger()
+    raise ValueError(f"unsupported gripper '{name}'")
