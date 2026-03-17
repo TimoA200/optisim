@@ -11,7 +11,7 @@ from optisim.core.action_primitives import ActionPrimitive, ActionType
 from optisim.core.task_definition import TaskDefinition
 from optisim.core.task_validator import TaskValidator, ValidationReport
 from optisim.math3d import Pose, Quaternion, normalize, vec3
-from optisim.robot import JointController, RobotModel, build_demo_humanoid
+from optisim.robot import IKOptions, JointController, RobotModel, build_humanoid_model, solve_inverse_kinematics
 from optisim.sim.collision import Collision, object_surface_collision
 from optisim.sim.world import WorldState
 
@@ -26,7 +26,7 @@ class SimulationRecord:
 
 @dataclass
 class ExecutionEngine:
-    robot: RobotModel = field(default_factory=build_demo_humanoid)
+    robot: RobotModel = field(default_factory=build_humanoid_model)
     world: WorldState = field(default_factory=WorldState.with_defaults)
     dt: float = 0.05
 
@@ -47,12 +47,28 @@ class ExecutionEngine:
         collisions: list[Collision] = []
         steps = 0
 
-        for action in task.actions:
-            executed_actions.append(action.action_type.value)
-            steps += self._execute_action(action, visualize)
-            collisions.extend(self._check_collisions())
+        if visualize is not None:
+            visualize.start_task(task, self.world, self.robot)
 
-        return SimulationRecord(steps=steps, duration_s=self.world.time_s, executed_actions=executed_actions, collisions=collisions)
+        for index, action in enumerate(task.actions, start=1):
+            executed_actions.append(action.action_type.value)
+            if visualize is not None:
+                visualize.start_action(action, index=index, total_actions=len(task.actions))
+            steps += self._execute_action(action, visualize)
+            current_collisions = self._check_collisions()
+            collisions.extend(current_collisions)
+            if visualize is not None:
+                visualize.update_collisions(current_collisions)
+
+        if visualize is not None:
+            visualize.finish(task, self.world, self.robot, collisions)
+
+        return SimulationRecord(
+            steps=steps,
+            duration_s=self.world.time_s,
+            executed_actions=executed_actions,
+            collisions=collisions,
+        )
 
     def step(self, visualize: "Visualizer | None" = None) -> None:
         self.world.time_s += self.dt
@@ -76,23 +92,19 @@ class ExecutionEngine:
         raise NotImplementedError(action.action_type)
 
     def _reach(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
-        target = self.world.objects[action.target].pose.position
-        sign = -1.0 if "right" in action.end_effector else 1.0
-        shoulder = self.robot.end_effector_pose(action.end_effector).position
-        delta = target - shoulder
-        planar = np.linalg.norm(delta[:2])
-        elbow = float(np.clip(planar / max(self.robot.max_reach(), 1e-6), 0.0, 1.0) * 1.8)
-        shoulder_pitch = float(np.clip(np.arctan2(delta[2], planar + 1e-6), -1.3, 1.3))
-        targets = {}
-        prefix = "right" if sign < 0 else "left"
-        for suffix, value in {
-            "shoulder_pitch": shoulder_pitch,
-            "elbow_pitch": elbow,
-            "wrist_pitch": -0.5 * elbow,
-        }.items():
-            joint_name = f"{prefix}_{suffix}"
-            if joint_name in self.robot.joints:
-                targets[joint_name] = value
+        target_pose = action.pose or self.world.objects[action.target].pose
+        ik_result = solve_inverse_kinematics(
+            self.robot,
+            action.end_effector,
+            target_pose,
+            options=IKOptions(
+                max_iterations=120,
+                convergence_threshold=2e-3,
+                damping=0.12,
+                position_only=action.pose is None,
+            ),
+        )
+        targets = ik_result.joint_positions
         steps = 0
         while any(abs(self.robot.joint_positions[name] - value) > 1e-3 for name, value in targets.items()):
             self.controller.step_towards(targets, self.dt)
@@ -100,6 +112,8 @@ class ExecutionEngine:
             steps += 1
             if steps > 200:
                 break
+        if not ik_result.success and not targets:
+            raise ValueError(f"ik failed for action targeting '{action.target}'")
         return max(steps, 1)
 
     def _move_object(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
@@ -157,5 +171,23 @@ class ExecutionEngine:
 
 
 class Visualizer:
+    def start_task(self, task: TaskDefinition, world: WorldState, robot: RobotModel) -> None:
+        return None
+
+    def start_action(self, action: ActionPrimitive, *, index: int, total_actions: int) -> None:
+        return None
+
+    def update_collisions(self, collisions: list[Collision]) -> None:
+        return None
+
     def render(self, world: WorldState, robot: RobotModel) -> None:
         raise NotImplementedError
+
+    def finish(
+        self,
+        task: TaskDefinition,
+        world: WorldState,
+        robot: RobotModel,
+        collisions: list[Collision],
+    ) -> None:
+        return None

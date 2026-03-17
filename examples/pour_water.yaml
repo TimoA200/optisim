@@ -1,0 +1,52 @@
+name: pour_water_pitcher_to_cup
+metadata:
+  author: optisim
+  scenario: kitchen
+robot:
+  model: optimus_humanoid
+world:
+  surfaces:
+    - name: kitchen_counter
+      pose:
+        position: [0.58, 0.0, 0.74]
+        rpy: [0.0, 0.0, 0.0]
+      size: [1.10, 0.72, 0.05]
+  objects:
+    - name: pitcher
+      pose:
+        position: [0.42, -0.14, 0.86]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.16, 0.12, 0.28]
+      mass_kg: 1.2
+    - name: cup
+      pose:
+        position: [0.67, 0.10, 0.83]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.09, 0.09, 0.12]
+      mass_kg: 0.25
+actions:
+  - type: reach
+    target: pitcher
+    end_effector: right_palm
+  - type: grasp
+    target: pitcher
+    end_effector: right_gripper
+  - type: move
+    target: pitcher
+    end_effector: right_palm
+    destination: [0.61, 0.08, 1.02]
+    speed: 0.22
+  - type: rotate
+    target: pitcher
+    end_effector: right_palm
+    axis: [1.0, 0.0, 0.0]
+    angle_rad: 1.15
+  - type: move
+    target: pitcher
+    end_effector: right_palm
+    destination: [0.46, -0.10, 0.90]
+    speed: 0.22
+  - type: place
+    target: pitcher
+    end_effector: right_palm
+    support: kitchen_counter

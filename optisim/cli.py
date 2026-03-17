@@ -7,7 +7,7 @@ from pathlib import Path
 
 from optisim import __version__
 from optisim.core import TaskDefinition
-from optisim.robot import RobotModel, build_demo_humanoid, load_urdf
+from optisim.robot import RobotModel, build_humanoid_model, load_urdf
 from optisim.sim import ExecutionEngine, WorldState
 from optisim.viz import MatplotlibVisualizer, TerminalVisualizer
 
@@ -66,7 +66,9 @@ def main(argv: list[str] | None = None) -> int:
 
 def _load_robot(payload: dict) -> RobotModel:
     if not payload:
-        return build_demo_humanoid()
+        return build_humanoid_model()
     if "urdf" in payload:
         return load_urdf(payload["urdf"])
-    return build_demo_humanoid()
+    if payload.get("model") in {None, "humanoid", "demo_humanoid", "optimus_humanoid"}:
+        return build_humanoid_model()
+    return build_humanoid_model()

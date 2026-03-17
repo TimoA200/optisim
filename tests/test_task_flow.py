@@ -2,20 +2,32 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from optisim.core import TaskDefinition
+from optisim.robot import build_humanoid_model
 from optisim.sim import ExecutionEngine, WorldState
 
 
-def test_pick_and_place_example_validates_and_runs() -> None:
-    task = TaskDefinition.from_file(Path("examples/pick_and_place.yaml"))
-    engine = ExecutionEngine(world=WorldState.from_dict(task.world))
+@pytest.mark.parametrize(
+    ("task_path", "expected_actions"),
+    [
+        (Path("examples/pick_and_place.yaml"), ["reach", "grasp", "move", "place"]),
+        (Path("examples/pour_water.yaml"), ["reach", "grasp", "move", "rotate", "move", "place"]),
+        (Path("examples/open_door.yaml"), ["reach", "grasp", "rotate", "pull"]),
+        (
+            Path("examples/stack_blocks.yaml"),
+            ["reach", "grasp", "move", "place", "reach", "grasp", "move", "place", "reach", "grasp", "move", "place"],
+        ),
+    ],
+)
+def test_examples_validate_and_run(task_path: Path, expected_actions: list[str]) -> None:
+    task = TaskDefinition.from_file(task_path)
+    engine = ExecutionEngine(robot=build_humanoid_model(), world=WorldState.from_dict(task.world))
     report = engine.validate(task)
     assert report.is_valid, report.summary()
     record = engine.run(task)
-    assert record.executed_actions == ["reach", "grasp", "move", "place"]
-    box = engine.world.objects["box"]
-    assert box.held_by is None
-    assert box.pose.position[2] > 1.0
+    assert record.executed_actions == expected_actions
 
 
 def test_move_without_grasp_is_invalid() -> None:

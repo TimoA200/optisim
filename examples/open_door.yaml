@@ -1,0 +1,43 @@
+name: open_hinged_door
+metadata:
+  author: optisim
+  scenario: doorway
+robot:
+  model: optimus_humanoid
+world:
+  surfaces:
+    - name: floor
+      pose:
+        position: [0.65, 0.0, 0.0]
+        rpy: [0.0, 0.0, 0.0]
+      size: [1.80, 1.20, 0.05]
+  objects:
+    - name: door_handle
+      pose:
+        position: [0.74, -0.22, 1.02]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.12, 0.04, 0.04]
+      mass_kg: 0.4
+    - name: door_panel
+      pose:
+        position: [0.82, -0.28, 1.00]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.06, 0.82, 2.00]
+      mass_kg: 18.0
+actions:
+  - type: reach
+    target: door_handle
+    end_effector: right_palm
+  - type: grasp
+    target: door_handle
+    end_effector: right_gripper
+  - type: rotate
+    target: door_handle
+    end_effector: right_palm
+    axis: [0.0, 1.0, 0.0]
+    angle_rad: 0.65
+  - type: pull
+    target: door_panel
+    end_effector: right_palm
+    axis: [1.0, 0.0, 0.0]
+    force_newtons: 42.0

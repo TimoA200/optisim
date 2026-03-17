@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from math import pi
 from typing import Iterable
@@ -12,6 +13,7 @@ from numpy.typing import NDArray
 from optisim.math3d import Pose, Quaternion, dh_transform, pose_from_matrix, vec3
 
 Matrix = NDArray[np.float64]
+Vector3 = NDArray[np.float64]
 
 
 @dataclass(slots=True)
@@ -41,16 +43,6 @@ class JointSpec:
         return float(np.clip(value, self.limit_lower, self.limit_upper))
 
 
-@dataclass(slots=True)
-class DemoHumanoidSpec:
-    shoulder_height: float = 1.38
-    upper_arm_length: float = 0.34
-    forearm_length: float = 0.30
-    hand_length: float = 0.12
-    shoulder_offset_y: float = 0.19
-    torso_height: float = 0.95
-
-
 @dataclass
 class RobotModel:
     """Tree-structured kinematic robot model with FK and constraints."""
@@ -67,54 +59,35 @@ class RobotModel:
         for name, joint in self.joints.items():
             self.joint_positions.setdefault(name, 0.0)
             self.joint_positions[name] = joint.clamp(self.joint_positions[name])
+        self._child_map: dict[str, list[JointSpec]] = defaultdict(list)
+        self._joint_by_child: dict[str, JointSpec] = {}
+        for joint in self.joints.values():
+            self._child_map[joint.parent].append(joint)
+            self._joint_by_child[joint.child] = joint
 
     def max_reach(self) -> float:
-        arm_reach: dict[str, float] = {"left": 0.0, "right": 0.0}
-        for joint in self.joints.values():
-            if any(token in joint.name for token in ("shoulder", "elbow", "wrist")):
-                side = "left" if joint.name.startswith("left_") else "right"
-                arm_reach[side] += abs(joint.dh_a) + abs(joint.dh_d)
+        reach = 0.0
+        for effector, link_name in self.end_effectors.items():
+            if "palm" not in effector and "gripper" not in effector:
+                continue
+            chain = self.joint_chain(link_name)
+            chain_reach = sum(abs(joint.dh_a) + abs(joint.dh_d) for joint in chain)
+            reach = max(reach, chain_reach)
         torso_bonus = max(link.visual_extent[2] for link in self.links.values()) * 0.25
-        return max(max(arm_reach.values()) + torso_bonus, 0.75)
+        return max(reach + torso_bonus, 0.75)
 
     def set_joint_positions(self, values: dict[str, float]) -> None:
         for name, value in values.items():
             self.joint_positions[name] = self.joints[name].clamp(value)
 
     def forward_kinematics(self, joint_positions: dict[str, float] | None = None) -> dict[str, Pose]:
-        positions = dict(self.joint_positions)
-        if joint_positions:
-            for name, value in joint_positions.items():
-                positions[name] = self.joints[name].clamp(value)
-
-        child_map: dict[str, list[JointSpec]] = {}
-        for joint in self.joints.values():
-            child_map.setdefault(joint.parent, []).append(joint)
-
+        positions = self._merged_positions(joint_positions)
         poses: dict[str, Pose] = {self.root_link: self.base_pose}
 
         def visit(link_name: str) -> None:
             parent_pose = poses[link_name]
-            for joint in child_map.get(link_name, []):
-                transform = parent_pose.matrix() @ joint.origin.matrix()
-                if joint.joint_type == "revolute":
-                    transform = transform @ dh_transform(
-                        joint.dh_a,
-                        joint.dh_alpha,
-                        joint.dh_d,
-                        positions[joint.name] + joint.dh_theta_offset,
-                    )
-                elif joint.joint_type == "prismatic":
-                    transform = transform @ dh_transform(
-                        joint.dh_a,
-                        joint.dh_alpha,
-                        joint.dh_d + positions[joint.name],
-                        joint.dh_theta_offset,
-                    )
-                else:
-                    transform = transform @ dh_transform(
-                        joint.dh_a, joint.dh_alpha, joint.dh_d, joint.dh_theta_offset
-                    )
+            for joint in self._child_map.get(link_name, []):
+                transform = self._joint_transform(joint, positions[joint.name], parent_pose.matrix())
                 poses[joint.child] = pose_from_matrix(transform)
                 visit(joint.child)
 
@@ -134,102 +107,59 @@ class RobotModel:
             aabbs[name] = (pose.position - extents, pose.position + extents)
         return aabbs
 
+    def joint_chain(self, target_link: str) -> list[JointSpec]:
+        chain: list[JointSpec] = []
+        current_link = target_link
+        while current_link != self.root_link:
+            joint = self._joint_by_child.get(current_link)
+            if joint is None:
+                raise KeyError(f"no kinematic chain from '{self.root_link}' to '{target_link}'")
+            chain.append(joint)
+            current_link = joint.parent
+        chain.reverse()
+        return chain
 
-Vector3 = NDArray[np.float64]
+    def joint_chain_for_effector(self, effector: str) -> list[JointSpec]:
+        return self.joint_chain(self.end_effectors[effector])
 
+    def joint_frames(
+        self,
+        joint_positions: dict[str, float] | None = None,
+    ) -> dict[str, tuple[Matrix, Matrix]]:
+        positions = self._merged_positions(joint_positions)
+        frames: dict[str, tuple[Matrix, Matrix]] = {}
 
-def build_demo_humanoid(spec: DemoHumanoidSpec | None = None) -> RobotModel:
-    """Construct a compact humanoid with DH-based arms for demos."""
+        def visit(link_name: str, parent_matrix: Matrix) -> None:
+            for joint in self._child_map.get(link_name, []):
+                origin_matrix = parent_matrix @ joint.origin.matrix()
+                child_matrix = self._joint_transform(joint, positions[joint.name], parent_matrix)
+                frames[joint.name] = (origin_matrix, child_matrix)
+                visit(joint.child, child_matrix)
 
-    spec = spec or DemoHumanoidSpec()
-    links = {
-        "pelvis": LinkSpec("pelvis", visual_extent=(0.24, 0.18, 0.16)),
-        "torso": LinkSpec("torso", visual_extent=(0.28, 0.22, 0.48)),
-        "right_upper_arm": LinkSpec("right_upper_arm", visual_extent=(0.12, 0.12, spec.upper_arm_length)),
-        "right_forearm": LinkSpec("right_forearm", visual_extent=(0.10, 0.10, spec.forearm_length)),
-        "right_palm": LinkSpec("right_palm", visual_extent=(0.10, 0.14, spec.hand_length)),
-        "left_upper_arm": LinkSpec("left_upper_arm", visual_extent=(0.12, 0.12, spec.upper_arm_length)),
-        "left_forearm": LinkSpec("left_forearm", visual_extent=(0.10, 0.10, spec.forearm_length)),
-        "left_palm": LinkSpec("left_palm", visual_extent=(0.10, 0.14, spec.hand_length)),
-    }
-    joints = {
-        "torso_yaw": JointSpec(
-            name="torso_yaw",
-            parent="pelvis",
-            child="torso",
-            origin=Pose(position=vec3([0.0, 0.0, spec.torso_height]), orientation=Quaternion.identity()),
-            limit_lower=-0.6,
-            limit_upper=0.6,
-            dh_d=0.0,
-        ),
-        "right_shoulder_pitch": JointSpec(
-            name="right_shoulder_pitch",
-            parent="torso",
-            child="right_upper_arm",
-            origin=Pose.from_xyz_rpy([0.0, -spec.shoulder_offset_y, spec.shoulder_height - spec.torso_height], [0.0, 0.0, -pi / 2]),
-            limit_lower=-1.7,
-            limit_upper=1.5,
-            velocity_limit=2.5,
-            dh_a=spec.upper_arm_length,
-            dh_alpha=0.0,
-        ),
-        "right_elbow_pitch": JointSpec(
-            name="right_elbow_pitch",
-            parent="right_upper_arm",
-            child="right_forearm",
-            limit_lower=0.0,
-            limit_upper=2.4,
-            velocity_limit=2.5,
-            dh_a=spec.forearm_length,
-            dh_alpha=0.0,
-        ),
-        "right_wrist_pitch": JointSpec(
-            name="right_wrist_pitch",
-            parent="right_forearm",
-            child="right_palm",
-            limit_lower=-1.1,
-            limit_upper=1.1,
-            velocity_limit=3.0,
-            dh_a=spec.hand_length,
-            dh_alpha=0.0,
-        ),
-        "left_shoulder_pitch": JointSpec(
-            name="left_shoulder_pitch",
-            parent="torso",
-            child="left_upper_arm",
-            origin=Pose.from_xyz_rpy([0.0, spec.shoulder_offset_y, spec.shoulder_height - spec.torso_height], [0.0, 0.0, pi / 2]),
-            limit_lower=-1.7,
-            limit_upper=1.5,
-            velocity_limit=2.5,
-            dh_a=spec.upper_arm_length,
-            dh_alpha=0.0,
-        ),
-        "left_elbow_pitch": JointSpec(
-            name="left_elbow_pitch",
-            parent="left_upper_arm",
-            child="left_forearm",
-            limit_lower=0.0,
-            limit_upper=2.4,
-            velocity_limit=2.5,
-            dh_a=spec.forearm_length,
-            dh_alpha=0.0,
-        ),
-        "left_wrist_pitch": JointSpec(
-            name="left_wrist_pitch",
-            parent="left_forearm",
-            child="left_palm",
-            limit_lower=-1.1,
-            limit_upper=1.1,
-            velocity_limit=3.0,
-            dh_a=spec.hand_length,
-            dh_alpha=0.0,
-        ),
-    }
-    return RobotModel(
-        name="optisim_demo_humanoid",
-        links=links,
-        joints=joints,
-        root_link="pelvis",
-        end_effectors={"right_palm": "right_palm", "left_palm": "left_palm", "right_gripper": "right_palm"},
-        base_pose=Pose(position=vec3([0.0, 0.0, 0.0]), orientation=Quaternion.identity()),
-    )
+        visit(self.root_link, self.base_pose.matrix())
+        return frames
+
+    def _merged_positions(self, joint_positions: dict[str, float] | None) -> dict[str, float]:
+        positions = dict(self.joint_positions)
+        if joint_positions:
+            for name, value in joint_positions.items():
+                positions[name] = self.joints[name].clamp(value)
+        return positions
+
+    def _joint_transform(self, joint: JointSpec, value: float, parent_matrix: Matrix) -> Matrix:
+        transform = parent_matrix @ joint.origin.matrix()
+        if joint.joint_type == "revolute":
+            return transform @ dh_transform(
+                joint.dh_a,
+                joint.dh_alpha,
+                joint.dh_d,
+                value + joint.dh_theta_offset,
+            )
+        if joint.joint_type == "prismatic":
+            return transform @ dh_transform(
+                joint.dh_a,
+                joint.dh_alpha,
+                joint.dh_d + value,
+                joint.dh_theta_offset,
+            )
+        return transform @ dh_transform(joint.dh_a, joint.dh_alpha, joint.dh_d, joint.dh_theta_offset)

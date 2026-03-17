@@ -1,0 +1,83 @@
+name: stack_three_blocks
+metadata:
+  author: optisim
+  scenario: tabletop_manipulation
+robot:
+  model: optimus_humanoid
+world:
+  surfaces:
+    - name: workbench
+      pose:
+        position: [0.58, 0.0, 0.74]
+        rpy: [0.0, 0.0, 0.0]
+      size: [1.00, 0.70, 0.05]
+    - name: stack_zone
+      pose:
+        position: [0.70, 0.16, 0.84]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.18, 0.18, 0.04]
+  objects:
+    - name: block_red
+      pose:
+        position: [0.42, -0.18, 0.82]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.06, 0.06, 0.06]
+      mass_kg: 0.2
+    - name: block_blue
+      pose:
+        position: [0.48, -0.06, 0.82]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.06, 0.06, 0.06]
+      mass_kg: 0.2
+    - name: block_gold
+      pose:
+        position: [0.53, 0.10, 0.82]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.06, 0.06, 0.06]
+      mass_kg: 0.2
+actions:
+  - type: reach
+    target: block_red
+    end_effector: right_palm
+  - type: grasp
+    target: block_red
+    end_effector: right_gripper
+  - type: move
+    target: block_red
+    end_effector: right_palm
+    destination: [0.70, 0.16, 0.91]
+    speed: 0.24
+  - type: place
+    target: block_red
+    end_effector: right_palm
+    support: stack_zone
+  - type: reach
+    target: block_blue
+    end_effector: right_palm
+  - type: grasp
+    target: block_blue
+    end_effector: right_gripper
+  - type: move
+    target: block_blue
+    end_effector: right_palm
+    destination: [0.70, 0.16, 0.98]
+    speed: 0.24
+  - type: place
+    target: block_blue
+    end_effector: right_palm
+    support: stack_zone
+  - type: reach
+    target: block_gold
+    end_effector: right_palm
+  - type: grasp
+    target: block_gold
+    end_effector: right_gripper
+  - type: move
+    target: block_gold
+    end_effector: right_palm
+    destination: [0.70, 0.16, 1.05]
+    speed: 0.24
+  - type: place
+    target: block_gold
+    end_effector: right_palm
+    support: stack_zone

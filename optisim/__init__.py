@@ -1,7 +1,7 @@
 """optisim public package interface."""
 
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
-from optisim.robot import DemoHumanoidSpec, RobotModel, build_demo_humanoid
+from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
 from optisim.sim import ExecutionEngine, WorldState
 
 __all__ = [
@@ -10,8 +10,10 @@ __all__ = [
     "TaskDefinition",
     "ValidationReport",
     "DemoHumanoidSpec",
+    "HumanoidSpec",
     "RobotModel",
     "build_demo_humanoid",
+    "build_humanoid_model",
     "ExecutionEngine",
     "WorldState",
 ]
