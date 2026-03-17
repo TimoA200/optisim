@@ -39,6 +39,7 @@ from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, b
 from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
+from optisim.perception import PerceptionPipeline, PointCloud, PoseEstimate, build_perception_pipeline
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.reactive import (
     ContactPhase,
@@ -149,6 +150,10 @@ __all__ = [
     "HumanoidMPC",
     "FootstepPlanner",
     "build_humanoid_mpc",
+    "PointCloud",
+    "PoseEstimate",
+    "PerceptionPipeline",
+    "build_perception_pipeline",
     "ValidationReport",
     "MotionPlanner",
     "PlanningResult",
