@@ -64,6 +64,7 @@ from optisim.safety import (
     ZoneType,
 )
 from optisim.sim import ExecutionEngine, WorldState
+from optisim.trajopt import TrajOptConfig, TrajOptResult, TrajectoryOptimizer, optimize_path
 from optisim.wbc import (
     BalanceTask,
     EndEffectorTask,
@@ -153,6 +154,10 @@ __all__ = [
     "ZoneType",
     "ExecutionEngine",
     "WorldState",
+    "TrajOptConfig",
+    "TrajOptResult",
+    "TrajectoryOptimizer",
+    "optimize_path",
     "WBCTask",
     "PostureTask",
     "EndEffectorTask",
