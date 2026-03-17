@@ -10,6 +10,7 @@ import yaml
 
 from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
+from optisim.batch import BatchConfig, BatchTaskResult
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
 from optisim.dynamics import ConstraintSet, DynamicsValidator, PayloadConstraint
@@ -23,6 +24,7 @@ from optisim.safety import SafetyConfig
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
 from optisim.sensors import SensorSuite
 from optisim.viz import MatplotlibVisualizer, TerminalVisualizer, WebVisualizer
+from optisim.batch.runner import _execute_batch
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -146,6 +148,15 @@ def build_parser() -> argparse.ArgumentParser:
     grasp_parser.add_argument("--visualize", action="store_true")
     grasp_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
 
+    batch_parser = subparsers.add_parser("batch", help="run multiple tasks in parallel")
+    batch_parser.add_argument("task_files", nargs="*", type=Path)
+    batch_parser.add_argument("--workers", type=int)
+    batch_parser.add_argument("--repeat", type=int, default=1)
+    batch_parser.add_argument("--output-dir", type=Path)
+    batch_parser.add_argument("--csv", type=Path)
+    batch_parser.add_argument("--json", type=Path)
+    batch_parser.add_argument("--timeout", type=float, default=60.0)
+
     return parser
 
 
@@ -220,6 +231,9 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "grasp":
             return _run_grasp(args)
+
+        if args.command == "batch":
+            return _run_batch(args)
 
         task = TaskDefinition.from_file(args.task_file)
         return _execute_task_definition(task, args)
@@ -698,3 +712,37 @@ def _gripper_from_name(name: str) -> Gripper:
     if normalized in {GripperType.THREE_FINGER.value, "multi_finger"}:
         return default_three_finger()
     raise ValueError(f"unsupported gripper '{name}'")
+
+
+def _run_batch(args: argparse.Namespace) -> int:
+    catalog = TaskCatalog()
+    tasks: list[Path | TaskDefinition]
+    if args.task_files:
+        tasks = list(args.task_files)
+    else:
+        tasks = [catalog.get(template.name) for template in catalog.list()]
+
+    config = BatchConfig(
+        tasks=tasks,
+        n_workers=args.workers if args.workers is not None else min(4, len(tasks) or 1),
+        timeout_per_task=args.timeout,
+        repeat=args.repeat,
+        output_dir=args.output_dir,
+    )
+
+    total_runs = len(tasks) * config.repeat
+    print(f"running batch with {total_runs} run(s) across {config.n_workers} worker(s)")
+
+    def _progress(done: int, total: int, result: BatchTaskResult) -> None:
+        status = "ok" if result.success else "failed"
+        print(f"[{done}/{total}] {result.task_name} run={result.run_index} {status}")
+
+    result = _execute_batch(config, progress_callback=_progress)
+    print(result.summary_table())
+    if args.csv is not None:
+        result.to_csv(args.csv)
+        print(f"csv saved to {args.csv}")
+    if args.json is not None:
+        result.to_json(args.json)
+        print(f"json saved to {args.json}")
+    return 0 if result.n_failed == 0 else 1

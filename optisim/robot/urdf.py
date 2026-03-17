@@ -8,6 +8,8 @@ from xml.etree import ElementTree as ET
 from optisim.math3d import Pose
 from optisim.robot.model import JointSpec, LinkSpec, RobotModel
 
+__all__ = ["load_urdf"]
+
 
 def load_urdf(path: str | Path) -> RobotModel:
     """Load a URDF file into the internal ``RobotModel`` representation."""
@@ -18,7 +20,10 @@ def load_urdf(path: str | Path) -> RobotModel:
         raise ValueError(f"{source} is not a URDF robot document")
 
     links = {
-        element.attrib["name"]: LinkSpec(name=element.attrib["name"])
+        element.attrib["name"]: LinkSpec(
+            name=element.attrib["name"],
+            visual_extent=_parse_visual_extent(element),
+        )
         for element in root.findall("link")
     }
     joints: dict[str, JointSpec] = {}
@@ -35,10 +40,10 @@ def load_urdf(path: str | Path) -> RobotModel:
         xyz = [0.0, 0.0, 0.0]
         rpy = [0.0, 0.0, 0.0]
         if origin_node is not None:
-            xyz = [float(v) for v in origin_node.attrib.get("xyz", "0 0 0").split()]
-            rpy = [float(v) for v in origin_node.attrib.get("rpy", "0 0 0").split()]
+            xyz = _parse_float_triplet(origin_node.attrib.get("xyz", "0 0 0"))
+            rpy = _parse_float_triplet(origin_node.attrib.get("rpy", "0 0 0"))
         axis_node = element.find("axis")
-        axis = tuple(float(v) for v in axis_node.attrib.get("xyz", "0 0 1").split()) if axis_node is not None else (0.0, 0.0, 1.0)
+        axis = tuple(_parse_float_triplet(axis_node.attrib.get("xyz", "0 0 1"))) if axis_node is not None else (0.0, 0.0, 1.0)
         limit_node = element.find("limit")
         lower, upper, velocity = -3.14159, 3.14159, 2.0
         if limit_node is not None:
@@ -62,11 +67,7 @@ def load_urdf(path: str | Path) -> RobotModel:
     if not root_candidates:
         raise ValueError("failed to infer URDF root link")
 
-    end_effectors = {
-        name: name for name in links if name.endswith("hand") or name.endswith("gripper") or name.endswith("palm")
-    }
-    if not end_effectors:
-        end_effectors = {root_candidates[-1]: root_candidates[-1]}
+    end_effectors = _infer_end_effectors(links, joints, child_links)
 
     return RobotModel(
         name=root.attrib.get("name", source.stem),
@@ -75,3 +76,48 @@ def load_urdf(path: str | Path) -> RobotModel:
         root_link=root_candidates[0],
         end_effectors=end_effectors,
     )
+
+
+def _parse_float_triplet(raw: str) -> list[float]:
+    return [float(value) for value in raw.split()]
+
+
+def _parse_visual_extent(element: ET.Element) -> tuple[float, float, float]:
+    geometry = element.find("./visual/geometry")
+    if geometry is None:
+        return (0.08, 0.08, 0.08)
+    box = geometry.find("box")
+    if box is not None:
+        size = _parse_float_triplet(box.attrib.get("size", "0.08 0.08 0.08"))
+        return (float(size[0]), float(size[1]), float(size[2]))
+    cylinder = geometry.find("cylinder")
+    if cylinder is not None:
+        radius = float(cylinder.attrib.get("radius", "0.04"))
+        length = float(cylinder.attrib.get("length", "0.08"))
+        diameter = radius * 2.0
+        return (diameter, diameter, length)
+    sphere = geometry.find("sphere")
+    if sphere is not None:
+        diameter = float(sphere.attrib.get("radius", "0.04")) * 2.0
+        return (diameter, diameter, diameter)
+    return (0.08, 0.08, 0.08)
+
+
+def _infer_end_effectors(
+    links: dict[str, LinkSpec],
+    joints: dict[str, JointSpec],
+    child_links: set[str],
+) -> dict[str, str]:
+    preferred = {
+        name: name
+        for name in links
+        if any(token in name for token in ("hand", "gripper", "palm", "tool", "wrist", "ee"))
+    }
+    if preferred:
+        return preferred
+    parent_links = {joint.parent for joint in joints.values()}
+    leaf_links = [name for name in links if name in child_links and name not in parent_links]
+    if leaf_links:
+        return {name: name for name in sorted(leaf_links)}
+    leaf_name = sorted(links)[-1]
+    return {leaf_name: leaf_name}

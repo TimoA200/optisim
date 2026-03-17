@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  Simplified static URDF derived from the public RRBot tutorial robot used in ROS / ros2_control demos.
+  The original RRBot is a small two-joint serial arm used for controller and simulation examples.
+-->
+<robot name="rrbot">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.12 0.12 0.12"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="link1">
+    <visual>
+      <geometry>
+        <box size="0.60 0.05 0.05"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="link2">
+    <visual>
+      <geometry>
+        <box size="0.50 0.05 0.05"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0.25" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" velocity="3.0"/>
+  </joint>
+
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0.60 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" velocity="3.0"/>
+  </joint>
+</robot>

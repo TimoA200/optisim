@@ -10,10 +10,12 @@ from typing import Iterable
 import numpy as np
 from numpy.typing import NDArray
 
-from optisim.math3d import Pose, Quaternion, dh_transform, pose_from_matrix, vec3
+from optisim.math3d import Pose, Quaternion, dh_transform, normalize, pose_from_matrix, vec3
 
 Matrix = NDArray[np.float64]
 Vector3 = NDArray[np.float64]
+
+__all__ = ["JointSpec", "LinkSpec", "RobotModel", "Matrix", "Vector3"]
 
 
 @dataclass(slots=True)
@@ -77,11 +79,17 @@ class RobotModel:
         """Estimate the maximum reach of arm-like end effectors."""
 
         reach = 0.0
-        for effector, link_name in self.end_effectors.items():
-            if "palm" not in effector and "gripper" not in effector:
-                continue
+        preferred_effectors = [
+            (effector, link_name)
+            for effector, link_name in self.end_effectors.items()
+            if any(token in effector or token in link_name for token in ("hand", "palm", "gripper", "tool", "ee"))
+        ]
+        for _, link_name in preferred_effectors or list(self.end_effectors.items()):
             chain = self.joint_chain(link_name)
-            chain_reach = sum(abs(joint.dh_a) + abs(joint.dh_d) for joint in chain)
+            chain_reach = sum(
+                float(np.linalg.norm(joint.origin.position)) + abs(joint.dh_a) + abs(joint.dh_d)
+                for joint in chain
+            )
             reach = max(reach, chain_reach)
         torso_bonus = max(link.visual_extent[2] for link in self.links.values()) * 0.25
         return max(reach + torso_bonus, 0.75)
@@ -172,18 +180,56 @@ class RobotModel:
 
     def _joint_transform(self, joint: JointSpec, value: float, parent_matrix: Matrix) -> Matrix:
         transform = parent_matrix @ joint.origin.matrix()
-        if joint.joint_type == "revolute":
+        if self._joint_uses_dh(joint) and joint.joint_type == "revolute":
             return transform @ dh_transform(
                 joint.dh_a,
                 joint.dh_alpha,
                 joint.dh_d,
                 value + joint.dh_theta_offset,
             )
-        if joint.joint_type == "prismatic":
+        if self._joint_uses_dh(joint) and joint.joint_type == "prismatic":
             return transform @ dh_transform(
                 joint.dh_a,
                 joint.dh_alpha,
                 joint.dh_d + value,
                 joint.dh_theta_offset,
             )
-        return transform @ dh_transform(joint.dh_a, joint.dh_alpha, joint.dh_d, joint.dh_theta_offset)
+        if self._joint_uses_dh(joint):
+            return transform @ dh_transform(joint.dh_a, joint.dh_alpha, joint.dh_d, joint.dh_theta_offset)
+        if joint.joint_type == "revolute":
+            return transform @ self._axis_rotation(joint.axis, value)
+        if joint.joint_type == "prismatic":
+            return transform @ self._axis_translation(joint.axis, value)
+        return transform
+
+    @staticmethod
+    def _joint_uses_dh(joint: JointSpec) -> bool:
+        return any(
+            abs(parameter) > 1e-9
+            for parameter in (joint.dh_a, joint.dh_alpha, joint.dh_d, joint.dh_theta_offset)
+        )
+
+    @staticmethod
+    def _axis_rotation(axis: tuple[float, float, float], angle: float) -> Matrix:
+        direction = normalize(np.asarray(axis, dtype=np.float64))
+        x, y, z = direction
+        c = float(np.cos(angle))
+        s = float(np.sin(angle))
+        one_minus_c = 1.0 - c
+        rotation = np.asarray(
+            [
+                [c + x * x * one_minus_c, x * y * one_minus_c - z * s, x * z * one_minus_c + y * s],
+                [y * x * one_minus_c + z * s, c + y * y * one_minus_c, y * z * one_minus_c - x * s],
+                [z * x * one_minus_c - y * s, z * y * one_minus_c + x * s, c + z * z * one_minus_c],
+            ],
+            dtype=np.float64,
+        )
+        transform = np.eye(4, dtype=np.float64)
+        transform[:3, :3] = rotation
+        return transform
+
+    @staticmethod
+    def _axis_translation(axis: tuple[float, float, float], distance: float) -> Matrix:
+        transform = np.eye(4, dtype=np.float64)
+        transform[:3, 3] = normalize(np.asarray(axis, dtype=np.float64)) * distance
+        return transform

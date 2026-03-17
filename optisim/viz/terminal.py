@@ -25,6 +25,8 @@ from optisim.robot.model import RobotModel
 from optisim.sim.collision import Collision
 from optisim.sim.world import WorldState
 
+__all__ = ["TerminalVisualizer"]
+
 
 @dataclass
 class TerminalVisualizer:
@@ -126,29 +128,18 @@ class TerminalVisualizer:
             for name, value in robot.joint_positions.items()
             if abs(value - self._previous_positions.get(name, value)) > 1e-3
         }
-        connections = [
-            ("pelvis", "chest"),
-            ("chest", "neck"),
-            ("neck", "head"),
-            ("chest", "right_clavicle"),
-            ("right_clavicle", "right_upper_arm"),
-            ("right_upper_arm", "right_forearm"),
-            ("right_forearm", "right_hand"),
-            ("right_hand", "right_palm"),
-            ("chest", "left_clavicle"),
-            ("left_clavicle", "left_upper_arm"),
-            ("left_upper_arm", "left_forearm"),
-            ("left_forearm", "left_hand"),
-            ("left_hand", "left_palm"),
-            ("pelvis", "right_thigh"),
-            ("right_thigh", "right_shin"),
-            ("right_shin", "right_foot"),
-            ("pelvis", "left_thigh"),
-            ("left_thigh", "left_shin"),
-            ("left_shin", "left_foot"),
-        ]
-        x_min, x_max = -0.9, 1.0
-        z_min, z_max = -0.1, 1.8
+        connections = [(joint.parent, joint.child) for joint in robot.joints.values()]
+        sample_positions = [pose.position for pose in poses.values()] + [obj.pose.position for obj in world.objects.values()]
+        if sample_positions:
+            x_values = [float(position[0]) for position in sample_positions]
+            z_values = [float(position[2]) for position in sample_positions]
+            x_padding = max((max(x_values) - min(x_values)) * 0.2, 0.2)
+            z_padding = max((max(z_values) - min(z_values)) * 0.2, 0.2)
+            x_min, x_max = min(x_values) - x_padding, max(x_values) + x_padding
+            z_min, z_max = min(z_values) - z_padding, max(z_values) + z_padding
+        else:
+            x_min, x_max = -0.9, 1.0
+            z_min, z_max = -0.1, 1.8
 
         def project(link_name: str) -> tuple[int, int]:
             pose = poses.get(link_name, robot.base_pose)
@@ -221,11 +212,13 @@ class TerminalVisualizer:
         status.add_row("Step", f"{self._action_index}/{max(self._action_total, 1)}")
         status.add_row("Sim Time", f"{world.time_s:0.2f}s")
 
-        ee_pose = robot.end_effector_pose("right_palm")
-        status.add_row(
-            "Right EE",
-            f"x={ee_pose.position[0]:+.2f} y={ee_pose.position[1]:+.2f} z={ee_pose.position[2]:+.2f}",
-        )
+        preferred_effector = "right_palm" if "right_palm" in robot.end_effectors else next(iter(robot.end_effectors), None)
+        if preferred_effector is not None:
+            ee_pose = robot.end_effector_pose(preferred_effector)
+            status.add_row(
+                "End Effector",
+                f"{preferred_effector}  x={ee_pose.position[0]:+.2f} y={ee_pose.position[1]:+.2f} z={ee_pose.position[2]:+.2f}",
+            )
 
         joints = Table(title="Joint Positions", show_header=True, header_style="bold cyan", expand=True)
         joints.add_column("Joint")

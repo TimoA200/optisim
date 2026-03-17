@@ -13,6 +13,8 @@ from optisim.robot.model import RobotModel
 Vector = NDArray[np.float64]
 Matrix = NDArray[np.float64]
 
+__all__ = ["IKOptions", "IKResult", "solve_inverse_kinematics"]
+
 
 @dataclass(slots=True)
 class IKOptions:

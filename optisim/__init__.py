@@ -1,6 +1,7 @@
 """optisim public package interface."""
 
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
+from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
 from optisim.dynamics import (
@@ -68,6 +69,11 @@ __all__ = [
     "TrajectoryMetrics",
     "analyze_trajectory",
     "compare_trajectories",
+    "BatchConfig",
+    "BatchResult",
+    "BatchRunner",
+    "BatchTaskResult",
+    "run_batch",
     "BTStatus",
     "BehaviorTreeBuilder",
     "BehaviorTreeExecutor",

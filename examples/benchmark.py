@@ -1,189 +1,197 @@
-"""Performance benchmark for key optisim subsystems."""
+"""Performance benchmark for core optisim kinematics and simulation paths."""
 
 from __future__ import annotations
 
 import statistics
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+from rich.console import Console
+from rich.table import Table
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from optisim.core.task_definition import TaskDefinition
-from optisim.math3d import Pose, Quaternion
-from optisim.planning.rrt import RRTConfig, plan_rrt
-from optisim.robot.humanoid import build_humanoid_model
-from optisim.robot.ik import IKOptions, solve_inverse_kinematics
-from optisim.safety.core import SafetyConfig, SafetyMonitor, SafetyZone, ZoneType
-from optisim.scenario.runner import ScenarioConfig, ScenarioRunner
-from optisim.sensors import SensorSuite
-from optisim.sim.engine import ExecutionEngine
+from optisim.math3d import Pose, Quaternion, vec3
+from optisim.robot import IKOptions, JointSpec, LinkSpec, RobotModel, build_humanoid_model, solve_inverse_kinematics
+from optisim.sim import ExecutionEngine, WorldState
+
+__all__ = ["main"]
 
 
-def build_simple_task() -> TaskDefinition:
-    return TaskDefinition.from_dict(
+@dataclass(slots=True)
+class BenchmarkStats:
+    """Small summary of a benchmark sample set."""
+
+    runs: int
+    median_ms: float
+    p95_ms: float
+    min_ms: float
+
+
+def build_chain_robot(joint_count: int) -> RobotModel:
+    """Build a serial chain robot used for scaling benchmarks."""
+
+    links = {"base": LinkSpec(name="base", visual_extent=(0.12, 0.12, 0.12))}
+    joints: dict[str, JointSpec] = {}
+    parent = "base"
+    for index in range(joint_count):
+        child = f"link_{index + 1}"
+        links[child] = LinkSpec(name=child, visual_extent=(0.22, 0.06, 0.06))
+        joint_name = f"joint_{index + 1}"
+        joints[joint_name] = JointSpec(
+            name=joint_name,
+            parent=parent,
+            child=child,
+            joint_type="revolute",
+            origin=Pose.from_xyz_rpy([0.22, 0.0, 0.0], [0.0, 0.0, 0.0]),
+            axis=(0.0, 1.0, 0.0),
+            limit_lower=-np.pi,
+            limit_upper=np.pi,
+            velocity_limit=4.0,
+        )
+        links[child].parent_joint = joint_name
+        parent = child
+    return RobotModel(
+        name=f"chain_{joint_count}dof",
+        links=links,
+        joints=joints,
+        root_link="base",
+        end_effectors={"tool": parent},
+        base_pose=Pose(position=vec3([0.0, 0.0, 0.25]), orientation=Quaternion.identity()),
+    )
+
+
+def sample_benchmark(runs: int, fn) -> BenchmarkStats:
+    """Measure runtime statistics for a callable."""
+
+    samples_ms: list[float] = []
+    for _ in range(runs):
+        started = time.perf_counter_ns()
+        fn()
+        elapsed_ms = (time.perf_counter_ns() - started) / 1_000_000.0
+        samples_ms.append(elapsed_ms)
+    return BenchmarkStats(
+        runs=runs,
+        median_ms=statistics.median(samples_ms),
+        p95_ms=np.percentile(samples_ms, 95),
+        min_ms=min(samples_ms),
+    )
+
+
+def benchmark_ik_by_joint_count(console: Console, joint_counts: list[int]) -> None:
+    """Benchmark IK solve time as joint count increases."""
+
+    table = Table(title="IK Solve Time by Joint Count", header_style="bold cyan")
+    table.add_column("Joints", justify="right")
+    table.add_column("Runs", justify="right")
+    table.add_column("Median (ms)", justify="right")
+    table.add_column("P95 (ms)", justify="right")
+    table.add_column("Best (ms)", justify="right")
+
+    for joint_count in joint_counts:
+        robot = build_chain_robot(joint_count)
+        target_positions = {
+            joint_name: 0.18 * np.sin((index + 1) * 0.45)
+            for index, joint_name in enumerate(robot.joints)
+        }
+        target_pose = robot.end_effector_pose("tool", target_positions)
+        stats = sample_benchmark(
+            runs=60,
+            fn=lambda: solve_inverse_kinematics(
+                robot,
+                "tool",
+                target_pose,
+                options=IKOptions(
+                    max_iterations=100,
+                    convergence_threshold=1e-3,
+                    damping=0.08,
+                    position_only=True,
+                ),
+            ),
+        )
+        table.add_row(
+            str(joint_count),
+            str(stats.runs),
+            f"{stats.median_ms:.3f}",
+            f"{stats.p95_ms:.3f}",
+            f"{stats.min_ms:.3f}",
+        )
+
+    console.print(table)
+
+
+def benchmark_fk_by_joint_count(console: Console, joint_counts: list[int]) -> None:
+    """Benchmark FK across every link in serial chains of increasing size."""
+
+    table = Table(title="Forward Kinematics Across All Links", header_style="bold green")
+    table.add_column("Links", justify="right")
+    table.add_column("Runs", justify="right")
+    table.add_column("Median (ms)", justify="right")
+    table.add_column("P95 (ms)", justify="right")
+    table.add_column("Best (ms)", justify="right")
+
+    for joint_count in joint_counts:
+        robot = build_chain_robot(joint_count)
+        robot.set_joint_positions(
+            {
+                joint_name: 0.25 * np.cos((index + 1) * 0.3)
+                for index, joint_name in enumerate(robot.joints)
+            }
+        )
+        stats = sample_benchmark(runs=2_000, fn=robot.forward_kinematics)
+        table.add_row(
+            str(len(robot.links)),
+            str(stats.runs),
+            f"{stats.median_ms:.4f}",
+            f"{stats.p95_ms:.4f}",
+            f"{stats.min_ms:.4f}",
+        )
+
+    console.print(table)
+
+
+def benchmark_simulation_step(console: Console) -> None:
+    """Benchmark a full simulation step on the built-in humanoid world."""
+
+    engine = ExecutionEngine(robot=build_humanoid_model(), world=WorldState.with_defaults())
+    engine.robot.set_joint_positions(
         {
-            "name": "benchmark_pick_and_place",
-            "robot": {"model": "optimus_humanoid"},
-            "world": {
-                "gravity": [0.0, 0.0, -9.81],
-                "surfaces": [
-                    {
-                        "name": "table",
-                        "pose": {"position": [0.55, 0.0, 0.74], "rpy": [0.0, 0.0, 0.0]},
-                        "size": [0.90, 0.60, 0.05],
-                    },
-                    {
-                        "name": "shelf",
-                        "pose": {"position": [0.60, -0.25, 1.02], "rpy": [0.0, 0.0, 0.0]},
-                        "size": [0.35, 0.25, 0.04],
-                    },
-                ],
-                "objects": [
-                    {
-                        "name": "box",
-                        "pose": {"position": [0.42, -0.12, 0.81], "rpy": [0.0, 0.0, 0.0]},
-                        "size": [0.08, 0.08, 0.12],
-                        "mass_kg": 0.75,
-                    }
-                ],
-            },
-            "actions": [
-                {"type": "reach", "target": "box", "end_effector": "right_palm"},
-                {"type": "grasp", "target": "box", "end_effector": "right_gripper"},
-                {
-                    "type": "move",
-                    "target": "box",
-                    "end_effector": "right_palm",
-                    "destination": [0.58, -0.20, 1.08],
-                    "speed": 0.28,
-                },
-                {"type": "place", "target": "box", "end_effector": "right_palm", "support": "shelf"},
-            ],
+            "torso_yaw": -0.08,
+            "right_shoulder_pitch": -0.9,
+            "right_shoulder_yaw": 0.45,
+            "right_elbow_pitch": 1.2,
         }
     )
+    stats = sample_benchmark(runs=5_000, fn=engine.step)
 
-
-def build_benchmark_safety() -> SafetyConfig:
-    return SafetyConfig(
-        zones=[
-            SafetyZone(
-                name="head_height_exclusion",
-                center=np.array([0.0, 0.0, 2.30], dtype=float),
-                half_extents=np.array([2.0, 2.0, 0.30], dtype=float),
-                zone_type=ZoneType.FORBIDDEN,
-            ),
-            SafetyZone(
-                name="torso_caution",
-                center=np.array([0.20, 0.0, 1.00], dtype=float),
-                half_extents=np.array([0.40, 0.40, 0.15], dtype=float),
-                zone_type=ZoneType.CAUTION,
-            ),
-        ],
-        joint_limits=SafetyConfig.default_humanoid().joint_limits,
+    table = Table(title="Simulation Step Runtime", header_style="bold magenta")
+    table.add_column("Workload")
+    table.add_column("Runs", justify="right")
+    table.add_column("Median (ms)", justify="right")
+    table.add_column("P95 (ms)", justify="right")
+    table.add_column("Best (ms)", justify="right")
+    table.add_row(
+        "ExecutionEngine.step()",
+        str(stats.runs),
+        f"{stats.median_ms:.4f}",
+        f"{stats.p95_ms:.4f}",
+        f"{stats.min_ms:.4f}",
     )
-
-
-def run_benchmark(name: str, runs: int, fn) -> None:
-    samples: list[float] = []
-    started = time.perf_counter()
-    for _ in range(runs):
-        run_started = time.perf_counter()
-        fn()
-        samples.append(time.perf_counter() - run_started)
-    total_s = time.perf_counter() - started
-    median_ms = statistics.median(samples) * 1000.0
-    print(f"{name}: {runs} runs in {total_s:.1f}s -> {median_ms:.1f}ms/run (median)", flush=True)
+    console.print(table)
 
 
 def main() -> None:
-    rng = np.random.default_rng(42)
-    task = build_simple_task()
+    """Run the benchmark suite."""
 
-    robot = build_humanoid_model()
-    ik_joint_names = [joint.name for joint in robot.joint_chain_for_effector("right_palm")]
-    ik_options = IKOptions(max_iterations=8, convergence_threshold=1e-2, damping=0.12, position_only=True)
-
-    def benchmark_ik() -> None:
-        target = Pose(
-            position=np.array(
-                [
-                    rng.uniform(0.35, 0.70),
-                    rng.uniform(-0.30, 0.05),
-                    rng.uniform(0.85, 1.25),
-                ],
-                dtype=float,
-            ),
-            orientation=Quaternion.identity(),
-        )
-        solve_inverse_kinematics(
-            robot,
-            "right_palm",
-            target,
-            joint_names=ik_joint_names,
-            options=ik_options,
-        )
-
-    engine = ExecutionEngine()
-
-    def benchmark_validation() -> None:
-        engine.validate(task)
-
-    arm_joints = [joint.name for joint in robot.joint_chain_for_effector("right_palm")]
-    lower_bounds = np.array([robot.joints[name].limit_lower for name in arm_joints], dtype=float)
-    upper_bounds = np.array([robot.joints[name].limit_upper for name in arm_joints], dtype=float)
-    rrt_config = RRTConfig(max_iterations=300, step_size=0.45, goal_bias=0.20, goal_threshold=0.25)
-
-    def benchmark_rrt() -> None:
-        start = rng.uniform(lower_bounds, upper_bounds)
-        goal = rng.uniform(lower_bounds, upper_bounds)
-        plan_rrt(
-            start,
-            goal,
-            lower_bounds=lower_bounds,
-            upper_bounds=upper_bounds,
-            is_state_valid=lambda state: bool(np.all(state >= lower_bounds) and np.all(state <= upper_bounds)),
-            is_edge_valid=lambda _a, _b: True,
-            config=rrt_config,
-            rng=rng,
-        )
-
-    safety_config = build_benchmark_safety()
-    safety_monitor = SafetyMonitor(zones=safety_config.zones, joint_limits=safety_config.joint_limits)
-    link_names = [f"link_{index}" for index in range(12)]
-
-    def benchmark_safety() -> None:
-        link_positions = {
-            name: np.array(
-                [
-                    rng.uniform(-0.5, 0.8),
-                    rng.uniform(-0.6, 0.6),
-                    rng.uniform(0.0, 2.4),
-                ],
-                dtype=float,
-            )
-            for name in link_names
-        }
-        safety_monitor.check_positions("benchmark_bot", link_positions)
-
-    def benchmark_scenario() -> None:
-        config = ScenarioConfig(
-            name="benchmark_scenario",
-            task=build_simple_task(),
-            sensor_suite=SensorSuite.default_humanoid_suite(),
-            safety_config=safety_config,
-            dt=0.05,
-            rng_seed=42,
-        )
-        ScenarioRunner(config).run()
-
-    run_benchmark("IK solving", 100, benchmark_ik)
-    run_benchmark("Task validation", 50, benchmark_validation)
-    run_benchmark("Motion planning (RRT)", 20, benchmark_rrt)
-    run_benchmark("Safety checking", 1000, benchmark_safety)
-    run_benchmark("Scenario run", 10, benchmark_scenario)
+    console = Console()
+    joint_counts = [4, 8, 12, 16]
+    console.print("[bold]optisim performance benchmark[/bold]")
+    benchmark_ik_by_joint_count(console, joint_counts)
+    benchmark_fk_by_joint_count(console, joint_counts)
+    benchmark_simulation_step(console)
 
 
 if __name__ == "__main__":

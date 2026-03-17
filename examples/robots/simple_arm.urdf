@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<robot name="simple_arm">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.14 0.14 0.14"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="shoulder_link">
+    <visual>
+      <geometry>
+        <box size="0.24 0.05 0.05"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="upper_arm_link">
+    <visual>
+      <geometry>
+        <box size="0.22 0.05 0.05"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="forearm_link">
+    <visual>
+      <geometry>
+        <box size="0.18 0.05 0.05"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="tool_link">
+    <visual>
+      <geometry>
+        <box size="0.10 0.06 0.06"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="shoulder_link"/>
+    <origin xyz="0 0 0.20" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.6" upper="2.6" velocity="3.0"/>
+  </joint>
+
+  <joint name="joint2" type="revolute">
+    <parent link="shoulder_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0.24 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.2" upper="2.2" velocity="3.0"/>
+  </joint>
+
+  <joint name="joint3" type="revolute">
+    <parent link="upper_arm_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0.22 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.2" upper="2.2" velocity="3.0"/>
+  </joint>
+
+  <joint name="joint4" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="tool_link"/>
+    <origin xyz="0.18 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.14" upper="3.14" velocity="4.0"/>
+  </joint>
+</robot>
