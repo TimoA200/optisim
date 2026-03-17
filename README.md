@@ -41,6 +41,7 @@
 - ✅ `optisim.gym_env`: OpenAI Gymnasium environment wrapper for RL-style experimentation
 - ✅ `optisim.scene`: semantic scene graphs for household and warehouse task planning, querying, and TAMP predicate conversion
 - ✅ `optisim.primitives`: parameterized motion primitive library bridging semantic scene-graph planning with executable robot motions
+- ✅ `optisim.worldmodel`: lightweight learned world model for scene-transition prediction, transition collection, and model-predictive primitive planning
 - ✅ `optisim.safety`: safety zones, joint limits, emergency stop handling, and `SafetyConfig` humanoid presets
 - ✅ `optisim.sensors`: force/torque, proximity, encoder, IMU, and depth-camera simulation with configurable noise models
 - ✅ Typed pure-Python API with PEP 561 marker support and a broad pytest-backed CI suite

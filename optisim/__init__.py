@@ -8,6 +8,7 @@ from . import scene as scene
 from . import benchmark as benchmark
 from . import curriculum as curriculum
 from . import export as export
+from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkResult, BenchmarkSuite, BenchmarkTask
@@ -163,6 +164,16 @@ from optisim.wbc import (
     WBCTask,
     build_wbc_controller,
 )
+from optisim.worldmodel import (
+    MPPConfig,
+    ModelPredictivePlanner,
+    StateEncoder,
+    TransitionSample,
+    WorldModelCollector,
+    WorldModelNet,
+    WorldModelTrainer,
+    WorldState as WorldModelState,
+)
 
 __all__ = [
     "TrajectoryMetrics",
@@ -171,6 +182,7 @@ __all__ = [
     "benchmark",
     "curriculum",
     "export",
+    "worldmodel",
     "BatchConfig",
     "BatchResult",
     "BatchRunner",
@@ -350,6 +362,14 @@ __all__ = [
     "WBCController",
     "WBCSolution",
     "build_wbc_controller",
+    "WorldModelState",
+    "StateEncoder",
+    "TransitionSample",
+    "WorldModelNet",
+    "WorldModelTrainer",
+    "MPPConfig",
+    "ModelPredictivePlanner",
+    "WorldModelCollector",
 ]
 
-__version__ = "0.13.0"
+__version__ = "0.14.0"
