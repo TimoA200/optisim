@@ -37,6 +37,15 @@ from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
+from optisim.safety import (
+    EmergencyStop,
+    JointSafetyLimit,
+    SafetyConfig,
+    SafetyMonitor,
+    SafetyViolation,
+    SafetyZone,
+    ZoneType,
+)
 from optisim.sim import ExecutionEngine, WorldState
 
 __all__ = [
@@ -91,6 +100,13 @@ __all__ = [
     "RobotModel",
     "build_demo_humanoid",
     "build_humanoid_model",
+    "EmergencyStop",
+    "JointSafetyLimit",
+    "SafetyConfig",
+    "SafetyMonitor",
+    "SafetyViolation",
+    "SafetyZone",
+    "ZoneType",
     "ExecutionEngine",
     "WorldState",
 ]
