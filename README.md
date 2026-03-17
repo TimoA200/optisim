@@ -34,6 +34,7 @@
 - ✅ `optisim.library`: 12 built-in humanoid task templates for rapid scenario bootstrapping
 - ✅ `optisim.analytics`: trajectory metrics, run comparison, and profiling helpers
 - ✅ `optisim.policy`: pure-numpy behavioral cloning — train neural policies from demonstrations, MLP network with Adam optimizer, stateless and stateful (history-window) executors
+- ✅ `optisim.rl`: pure-numpy PPO reinforcement learning — train agents in OptisimEnv, Actor-Critic network, GAE rollout buffer, clipped surrogate loss, callbacks, and evaluation utilities
 - ✅ `optisim.gym_env`: OpenAI Gymnasium environment wrapper for RL-style experimentation
 - ✅ `optisim.safety`: safety zones, joint limits, emergency stop handling, and `SafetyConfig` humanoid presets
 - ✅ `optisim.sensors`: force/torque, proximity, encoder, IMU, and depth-camera simulation with configurable noise models
@@ -87,6 +88,19 @@ solution = controller.step(state, target_position=[0.05, 0.0], footstep_plan=pla
 
 print(solution.optimal_states[:3])
 print(solution.optimal_inputs[:3])
+```
+
+RL PPO example:
+
+```python
+from optisim.rl import PPOConfig, PPOTrainer
+from optisim.gym_env import OptisimEnv, register_optisim_env
+
+register_optisim_env()
+env = OptisimEnv(max_steps=100)
+trainer = PPOTrainer(PPOConfig(total_timesteps=10_000, n_steps=64))
+result = trainer.train(env)
+print(result.mean_reward)
 ```
 
 ## Architecture

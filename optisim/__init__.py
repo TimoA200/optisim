@@ -65,6 +65,14 @@ from optisim.policy import (
     train_policy,
 )
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
+from optisim.rl import (
+    ActorCritic,
+    PPOConfig,
+    PPOTrainer,
+    RolloutBuffer,
+    TrainingResult as RLTrainingResult,
+    evaluate_policy,
+)
 from optisim.reactive import (
     ContactPhase,
     ManipulationFSM,
@@ -204,6 +212,12 @@ __all__ = [
     "TrainingResult",
     "build_policy_network",
     "train_policy",
+    "PPOConfig",
+    "PPOTrainer",
+    "RLTrainingResult",
+    "ActorCritic",
+    "RolloutBuffer",
+    "evaluate_policy",
     "ValidationReport",
     "MotionPlanner",
     "PlanningResult",
@@ -263,4 +277,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
