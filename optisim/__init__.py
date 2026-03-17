@@ -6,6 +6,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 
 from . import scene as scene
 from . import benchmark as benchmark
+from . import export as export
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkResult, BenchmarkSuite, BenchmarkTask
@@ -43,6 +44,7 @@ from optisim.grasp import (
     surface_contacts,
 )
 from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, build_estimator
+from optisim.export import BenchmarkExporter, ExportFormat, SceneExport, SceneExporter, TrajectoryExport, TrajectoryExporter
 from optisim.library import TaskCatalog
 from optisim.lfd import (
     DemoStep,
@@ -153,6 +155,7 @@ __all__ = [
     "analyze_trajectory",
     "compare_trajectories",
     "benchmark",
+    "export",
     "BatchConfig",
     "BatchResult",
     "BatchRunner",
@@ -204,6 +207,12 @@ __all__ = [
     "StateEstimationPipeline",
     "build_estimator",
     "TaskCatalog",
+    "ExportFormat",
+    "TrajectoryExport",
+    "SceneExport",
+    "TrajectoryExporter",
+    "SceneExporter",
+    "BenchmarkExporter",
     "DemoStep",
     "Demonstration",
     "DemonstrationLibrary",
@@ -317,4 +326,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"

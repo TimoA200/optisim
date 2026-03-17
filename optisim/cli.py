@@ -15,6 +15,7 @@ from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkSu
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
 from optisim.dynamics import ConstraintSet, DynamicsValidator, PayloadConstraint
+from optisim.export import BenchmarkExporter
 from optisim.grasp import GraspExecutor, GraspPlanner, Gripper, GripperType, default_parallel_jaw, default_suction, default_three_finger
 from optisim.library import TaskCatalog
 from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
@@ -168,6 +169,15 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark_parser.add_argument("--list", action="store_true", help="list available benchmark tasks")
     benchmark_parser.add_argument("--format", choices=("table", "json", "csv"), default="table")
 
+    export_parser = subparsers.add_parser("export", help="export benchmark and interchange artifacts")
+    export_subparsers = export_parser.add_subparsers(dest="export_command", required=True)
+
+    export_benchmark_parser = export_subparsers.add_parser(
+        "run-benchmark",
+        help="run the default benchmark suite and export results",
+    )
+    export_benchmark_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+
     return parser
 
 
@@ -256,6 +266,9 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "benchmark":
             return _run_benchmark(args)
+
+        if args.command == "export":
+            return _run_export(args)
 
         task = TaskDefinition.from_file(args.task_file)
         return _execute_task_definition(task, args)
@@ -518,6 +531,20 @@ def _run_benchmark(args: argparse.Namespace) -> int:
         print(reporter.to_csv(results), end="")
     else:
         print(reporter.format_table(results))
+    return 0
+
+
+def _run_export(args: argparse.Namespace) -> int:
+    if args.export_command != "run-benchmark":
+        raise ValueError(f"unsupported export command '{args.export_command}'")
+
+    results = BenchmarkEvaluator().run_suite(BenchmarkSuite.DEFAULT)
+    if args.format == "json":
+        print(BenchmarkExporter.to_json(results))
+    elif args.format == "csv":
+        print(BenchmarkExporter.to_csv(results), end="")
+    else:
+        print(BenchmarkExporter.to_markdown(results))
     return 0
 
 
