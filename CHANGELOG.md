@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.5.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.lfd`: demonstration recording, JSON serialization, DMP-based trajectory learning, replay, interpolation, and goal adaptation utilities.
+- Added a bundled `examples/lfd_demo.py` workflow showing recording, DMP training, and retargeted generation.
+- Added pytest coverage for demonstration recording, persistence, library management, DMP generation, replay, interpolation, and edge cases.
+
 ## [0.4.0] - 2026-03-17
 
 ### Added

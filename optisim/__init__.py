@@ -37,6 +37,14 @@ from optisim.grasp import (
 )
 from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, build_estimator
 from optisim.library import TaskCatalog
+from optisim.lfd import (
+    DemoStep,
+    Demonstration,
+    DemonstrationLibrary,
+    DemonstrationPlayer,
+    DemonstrationRecorder,
+    DynamicMovementPrimitive,
+)
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
 from optisim.perception import PerceptionPipeline, PointCloud, PoseEstimate, build_perception_pipeline
@@ -139,6 +147,12 @@ __all__ = [
     "StateEstimationPipeline",
     "build_estimator",
     "TaskCatalog",
+    "DemoStep",
+    "Demonstration",
+    "DemonstrationLibrary",
+    "DemonstrationPlayer",
+    "DemonstrationRecorder",
+    "DynamicMovementPrimitive",
     "AssignmentValidator",
     "Dependency",
     "MultiRobotRecord",
@@ -205,4 +219,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
