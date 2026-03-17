@@ -8,6 +8,7 @@ from . import scene as scene
 from . import benchmark as benchmark
 from . import contact as contact
 from . import curriculum as curriculum
+from . import dexterous as dexterous
 from . import export as export
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
@@ -51,6 +52,7 @@ from optisim.dynamics import (
     TaskEnergyProfile,
     WorkspaceConstraint,
 )
+from optisim.dexterous import DexterousController, Finger, FingerCommand, FingerControlMode, FingerJoint, Hand, TactileCell, TactileSensor
 from optisim.grasp import (
     ContactPatch,
     ContactPoint,
@@ -194,6 +196,7 @@ __all__ = [
     "benchmark",
     "contact",
     "curriculum",
+    "dexterous",
     "export",
     "worldmodel",
     "BatchConfig",
@@ -245,6 +248,14 @@ __all__ = [
     "RigidBodyState",
     "TaskEnergyProfile",
     "WorkspaceConstraint",
+    "FingerJoint",
+    "Finger",
+    "Hand",
+    "TactileCell",
+    "TactileSensor",
+    "FingerControlMode",
+    "FingerCommand",
+    "DexterousController",
     "ContactPatch",
     "ContactPoint",
     "GraspExecutor",
@@ -394,4 +405,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.15.0"
+__version__ = "0.16.0"
