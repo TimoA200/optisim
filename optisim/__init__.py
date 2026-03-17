@@ -18,6 +18,7 @@ from . import gait as gait
 from . import language as language
 from . import occupancy as occupancy
 from . import pathplan as pathplan
+from . import recorder as recorder
 from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
@@ -117,6 +118,7 @@ from optisim.primitives import (
     ReachPrimitive,
     apply_effects,
 )
+from optisim.recorder import EpisodeRecorder, EpisodeReplay, TelemetryFrame, TelemetryStats
 from optisim.rl import (
     ActorCritic,
     PPOConfig,
@@ -212,6 +214,7 @@ __all__ = [
     "language",
     "occupancy",
     "pathplan",
+    "recorder",
     "retarget",
     "terrain",
     "worldmodel",
@@ -348,6 +351,10 @@ __all__ = [
     "PoseEstimate",
     "PerceptionPipeline",
     "build_perception_pipeline",
+    "TelemetryFrame",
+    "EpisodeRecorder",
+    "EpisodeReplay",
+    "TelemetryStats",
     "BCConfig",
     "BehavioralCloningTrainer",
     "NeuralPolicy",
@@ -459,4 +466,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.25.0"
+__version__ = "0.26.0"

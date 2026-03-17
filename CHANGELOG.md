@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.26.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.recorder`: `TelemetryFrame`, `EpisodeRecorder`, `EpisodeReplay`, and `TelemetryStats`.
+- Added telemetry frame serialization, bounded episode recording, interpolated replay queries, and aggregate contact/joint statistics.
+- Added pytest coverage for recorder serialization, capacity handling, interpolation behavior, replay indexing, package exports, and version metadata.
+
 ## [0.25.0] - 2026-03-17
 
 ### Added
