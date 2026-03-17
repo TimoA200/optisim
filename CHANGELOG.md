@@ -10,6 +10,8 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 
 - Added `optisim.mpc`: linear inverted-pendulum MPC for humanoid CoM balance and locomotion.
 - Added `FootstepPlanner` and `FootstepPlan` helpers for simple alternating humanoid walking patterns.
+- Added `optisim.estimation`: EKF-based humanoid state estimation with IMU, encoder, contact, and vision updates.
+- Added `StateEstimationPipeline`, `RobotState`, and an IMU dead-reckoning utility plus a bundled estimation demo.
 - Added a bundled `examples/mpc_balance.py` example and MPC-focused pytest coverage.
 
 ## [0.3.0] - 2026-03-17

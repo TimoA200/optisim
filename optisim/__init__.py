@@ -34,6 +34,7 @@ from optisim.grasp import (
     slip_margin,
     surface_contacts,
 )
+from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, build_estimator
 from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
@@ -127,6 +128,10 @@ __all__ = [
     "min_resisted_wrench",
     "slip_margin",
     "surface_contacts",
+    "RobotState",
+    "EKFConfig",
+    "StateEstimationPipeline",
+    "build_estimator",
     "TaskCatalog",
     "AssignmentValidator",
     "Dependency",
