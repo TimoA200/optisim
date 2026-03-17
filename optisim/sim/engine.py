@@ -13,6 +13,7 @@ from optisim.core.task_validator import TaskValidator, ValidationReport
 from optisim.math3d import Pose, Quaternion, normalize, vec3
 from optisim.robot import IKOptions, JointController, RobotModel, build_humanoid_model, solve_inverse_kinematics
 from optisim.sim.collision import Collision, object_surface_collision
+from optisim.sim.recording import SimulationRecording
 from optisim.sim.world import WorldState
 
 
@@ -24,6 +25,7 @@ class SimulationRecord:
     duration_s: float
     executed_actions: list[str] = field(default_factory=list)
     collisions: list[Collision] = field(default_factory=list)
+    recording: SimulationRecording | None = None
 
 
 @dataclass
@@ -56,19 +58,35 @@ class ExecutionEngine:
         executed_actions: list[str] = []
         collisions: list[Collision] = []
         steps = 0
+        recording = SimulationRecording.from_robot(
+            self.robot,
+            task_name=task.name,
+            dt=self.dt,
+            metadata={"world_time_start_s": float(self.world.time_s)},
+        )
 
         if visualize is not None:
             visualize.start_task(task, self.world, self.robot)
+        self._emit_frame(visualize=visualize, recording=recording, active_action=None, collisions=[])
 
         for index, action in enumerate(task.actions, start=1):
+            action_label = f"{action.action_type.value} {action.target}"
             executed_actions.append(action.action_type.value)
             if visualize is not None:
                 visualize.start_action(action, index=index, total_actions=len(task.actions))
-            steps += self._execute_action(action, visualize)
+            frame_count_before = recording.frame_count()
+            steps += self._execute_action(action, visualize, recording, action_label)
             current_collisions = self._check_collisions()
             collisions.extend(current_collisions)
             if visualize is not None:
                 visualize.update_collisions(current_collisions)
+            if recording.frame_count() == frame_count_before:
+                self._emit_frame(
+                    visualize=visualize,
+                    recording=recording,
+                    active_action=action_label,
+                    collisions=current_collisions,
+                )
 
         if visualize is not None:
             visualize.finish(task, self.world, self.robot, collisions)
@@ -78,32 +96,57 @@ class ExecutionEngine:
             duration_s=self.world.time_s,
             executed_actions=executed_actions,
             collisions=collisions,
+            recording=recording,
         )
 
-    def step(self, visualize: "Visualizer | None" = None) -> None:
+    def step(
+        self,
+        visualize: "Visualizer | None" = None,
+        *,
+        recording: SimulationRecording | None = None,
+        active_action: str | None = None,
+    ) -> list[Collision]:
         """Advance simulated time by one fixed step and refresh visualization."""
 
         self.world.time_s += self.dt
-        if visualize is not None:
-            visualize.render(self.world, self.robot)
+        collisions = self._check_collisions()
+        self._emit_frame(
+            visualize=visualize,
+            recording=recording,
+            active_action=active_action,
+            collisions=collisions,
+        )
+        return collisions
 
-    def _execute_action(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
+    def _execute_action(
+        self,
+        action: ActionPrimitive,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         if action.action_type is ActionType.REACH:
-            return self._reach(action, visualize)
+            return self._reach(action, visualize, recording, active_action)
         if action.action_type is ActionType.GRASP:
             self.world.objects[action.target].held_by = action.end_effector
             return 1
         if action.action_type is ActionType.MOVE:
-            return self._move_object(action, visualize)
+            return self._move_object(action, visualize, recording, active_action)
         if action.action_type is ActionType.PLACE:
-            return self._place(action, visualize)
+            return self._place(action, visualize, recording, active_action)
         if action.action_type in {ActionType.PUSH, ActionType.PULL}:
-            return self._translate_object(action, action.action_type is ActionType.PUSH, visualize)
+            return self._translate_object(action, action.action_type is ActionType.PUSH, visualize, recording, active_action)
         if action.action_type is ActionType.ROTATE:
-            return self._rotate_object(action, visualize)
+            return self._rotate_object(action, visualize, recording, active_action)
         raise NotImplementedError(action.action_type)
 
-    def _reach(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
+    def _reach(
+        self,
+        action: ActionPrimitive,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         target_pose = action.pose or self.world.objects[action.target].pose
         ik_result = solve_inverse_kinematics(
             self.robot,
@@ -120,7 +163,7 @@ class ExecutionEngine:
         steps = 0
         while any(abs(self.robot.joint_positions[name] - value) > 1e-3 for name, value in targets.items()):
             self.controller.step_towards(targets, self.dt)
-            self.step(visualize)
+            self.step(visualize, recording=recording, active_action=active_action)
             steps += 1
             if steps > 200:
                 break
@@ -128,7 +171,13 @@ class ExecutionEngine:
             raise ValueError(f"ik failed for action targeting '{action.target}'")
         return max(steps, 1)
 
-    def _move_object(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
+    def _move_object(
+        self,
+        action: ActionPrimitive,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         obj = self.world.objects[action.target]
         if obj.held_by is None:
             raise ValueError(f"cannot move '{action.target}' because it is not grasped")
@@ -139,19 +188,32 @@ class ExecutionEngine:
         for step_index in range(1, steps + 1):
             alpha = step_index / steps
             obj.pose = Pose(position=start * (1 - alpha) + destination * alpha, orientation=obj.pose.orientation)
-            self.step(visualize)
+            self.step(visualize, recording=recording, active_action=active_action)
         return steps
 
-    def _place(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
+    def _place(
+        self,
+        action: ActionPrimitive,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         obj = self.world.objects[action.target]
         surface = self.world.surfaces[action.support or ""]
         z = surface.pose.position[2] + surface.size[2] / 2.0 + obj.size[2] / 2.0
         obj.pose = Pose(position=vec3([obj.pose.position[0], obj.pose.position[1], z]), orientation=obj.pose.orientation)
         obj.held_by = None
-        self.step(visualize)
+        self.step(visualize, recording=recording, active_action=active_action)
         return 1
 
-    def _translate_object(self, action: ActionPrimitive, push: bool, visualize: "Visualizer | None") -> int:
+    def _translate_object(
+        self,
+        action: ActionPrimitive,
+        push: bool,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         direction = normalize(vec3(action.axis or [1.0, 0.0, 0.0]))
         if not push:
             direction *= -1.0
@@ -159,18 +221,43 @@ class ExecutionEngine:
         destination = self.world.objects[action.target].pose.position + direction * magnitude
         translated = ActionPrimitive.move(target=action.target, destination=destination.tolist(), end_effector=action.end_effector)
         self.world.objects[action.target].held_by = action.end_effector
-        steps = self._move_object(translated, visualize)
+        steps = self._move_object(translated, visualize, recording, active_action)
         self.world.objects[action.target].held_by = None
         return steps
 
-    def _rotate_object(self, action: ActionPrimitive, visualize: "Visualizer | None") -> int:
+    def _rotate_object(
+        self,
+        action: ActionPrimitive,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+    ) -> int:
         obj = self.world.objects[action.target]
         axis = normalize(vec3(action.axis or [0.0, 0.0, 1.0]))
         half_angle = (action.angle_rad or 0.0) / 2.0
         q = Quaternion(np.cos(half_angle), *(axis * np.sin(half_angle)))
         obj.pose = Pose(position=obj.pose.position, orientation=obj.pose.orientation * q)
-        self.step(visualize)
+        self.step(visualize, recording=recording, active_action=active_action)
         return 1
+
+    def _emit_frame(
+        self,
+        *,
+        visualize: "Visualizer | None",
+        recording: SimulationRecording | None,
+        active_action: str | None,
+        collisions: list[Collision],
+    ) -> None:
+        if visualize is not None:
+            visualize.update_collisions(collisions)
+            visualize.render(self.world, self.robot)
+        if recording is not None:
+            recording.capture_frame(
+                self.robot,
+                self.world,
+                active_action=active_action,
+                collisions=collisions,
+            )
 
     def _check_collisions(self) -> list[Collision]:
         collisions: list[Collision] = []
