@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 from optisim import __version__
-from optisim.analytics import analyze_trajectory
+from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.core import TaskDefinition
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
@@ -43,6 +46,17 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_parser = subparsers.add_parser("analyze", help="analyze a simulation recording")
     analyze_parser.add_argument("recording_file", type=Path)
 
+    sweep_parser = subparsers.add_parser("sweep", help="run a task parameter sweep")
+    sweep_parser.add_argument("task_file", type=Path)
+    sweep_parser.add_argument(
+        "--vary",
+        dest="vary_specs",
+        action="append",
+        default=[],
+        metavar="ACTION:FIELD:VALUES",
+        help="parameter range such as 2:speed:0.2,0.3 or 2:destination:[0.5,0,1.0],[0.6,-0.2,1.1]",
+    )
+
     return parser
 
 
@@ -67,6 +81,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "analyze":
         return _run_analysis(args)
+
+    if args.command == "sweep":
+        return _run_sweep(args)
 
     task = TaskDefinition.from_file(args.task_file)
     world = WorldState.from_dict(task.world)
@@ -170,3 +187,62 @@ def _run_analysis(args: argparse.Namespace) -> int:
         print("  none")
 
     return 0
+
+
+def _run_sweep(args: argparse.Namespace) -> int:
+    task = TaskDefinition.from_file(args.task_file)
+    parameter_ranges = [_parse_vary_spec(spec) for spec in args.vary_specs]
+    results = sweep_task(task, parameter_ranges)
+
+    print(f"Sweep results for {args.task_file}")
+    print(f"task: {task.name}")
+    print(f"runs: {len(results)}")
+
+    for index, result in enumerate(results[:3], start=1):
+        print(f"#{index} score={composite_score(result):.6f} params={result.parameters or {'baseline': True}}")
+        print(
+            "  metrics: "
+            f"time={result.metrics.total_time_s:.3f}s "
+            f"smoothness={result.metrics.smoothness_score:.3f} "
+            f"idle={result.metrics.idle_fraction:.3f} "
+            f"collisions={result.metrics.collision_count}"
+        )
+
+    return 0
+
+
+def _parse_vary_spec(spec: str) -> ParameterRange:
+    action_text, field, values_text = spec.split(":", maxsplit=2)
+    values = [_parse_cli_value(token) for token in _split_cli_values(values_text)]
+    if not values:
+        raise ValueError(f"invalid vary spec '{spec}': no values provided")
+    return ParameterRange(action_index=int(action_text), field=field, values=values)
+
+
+def _split_cli_values(values_text: str) -> list[str]:
+    values: list[str] = []
+    token: list[str] = []
+    depth = 0
+    for char in values_text:
+        if char == "," and depth == 0:
+            candidate = "".join(token).strip()
+            if candidate:
+                values.append(candidate)
+            token = []
+            continue
+        if char in "[{(":
+            depth += 1
+        elif char in "]})":
+            depth = max(depth - 1, 0)
+        token.append(char)
+    candidate = "".join(token).strip()
+    if candidate:
+        values.append(candidate)
+    return values
+
+
+def _parse_cli_value(token: str) -> float | list[float]:
+    payload = yaml.safe_load(token)
+    if isinstance(payload, list):
+        return [float(item) for item in payload]
+    return float(payload)
