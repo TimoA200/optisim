@@ -6,6 +6,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 
 from . import scene as scene
 from . import terrain as terrain
+from . import admittance as admittance
 from . import benchmark as benchmark
 from . import balance as balance
 from . import contact as contact
@@ -23,6 +24,13 @@ from . import recorder as recorder
 from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
+from optisim.admittance import (
+    AdmittanceController1D,
+    AdmittanceController6D,
+    AdmittanceLogger,
+    AdmittanceParams,
+    ContactCompliantMotion,
+)
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.balance import BalanceMonitor, BalanceReport, COMState, SupportPolygon, ZMPCalculator
 from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkResult, BenchmarkSuite, BenchmarkTask
@@ -204,6 +212,7 @@ __all__ = [
     "TrajectoryMetrics",
     "analyze_trajectory",
     "compare_trajectories",
+    "admittance",
     "balance",
     "benchmark",
     "contact",
@@ -221,6 +230,11 @@ __all__ = [
     "retarget",
     "terrain",
     "worldmodel",
+    "AdmittanceParams",
+    "AdmittanceController1D",
+    "AdmittanceController6D",
+    "ContactCompliantMotion",
+    "AdmittanceLogger",
     "BatchConfig",
     "BatchResult",
     "BatchRunner",
@@ -474,4 +488,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.27.0"
+__version__ = "0.28.0"

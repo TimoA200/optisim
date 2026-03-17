@@ -259,4 +259,4 @@ def test_balancemonitor_history_is_capped_at_max_history() -> None:
 
 def test_balance_module_version_is_current() -> None:
     assert balance.__all__ == ["COMState", "ZMPCalculator", "SupportPolygon", "BalanceMonitor", "BalanceReport"]
-    assert optisim.__version__ == "0.27.0"
+    assert optisim.__version__ == "0.28.0"

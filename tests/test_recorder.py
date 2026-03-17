@@ -380,4 +380,4 @@ def test_root_exports_recorder_module_and_classes() -> None:
     assert PublicEpisodeReplay is EpisodeReplay
     assert PublicTelemetryStats is TelemetryStats
     assert optisim.recorder is recorder
-    assert optisim.__version__ == "0.27.0"
+    assert optisim.__version__ == "0.28.0"

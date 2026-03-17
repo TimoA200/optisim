@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.28.0] - 2026-03-18
+
+### Added
+
+- Added `optisim.admittance`: `AdmittanceParams`, `AdmittanceController1D`, `AdmittanceController6D`, `ContactCompliantMotion`, and `AdmittanceLogger`.
+- Added virtual mass-spring-damper compliant motion helpers for force-torque-driven admittance control and safe contact reaction.
+- Added pytest coverage for parameter validation, single-axis and 6D controller stepping, compliant pose blending, bounded logging, package exports, and version metadata.
+
 ## [0.27.0] - 2026-03-18
 
 ### Added

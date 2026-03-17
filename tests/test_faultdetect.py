@@ -380,4 +380,4 @@ def test_top_level_optisim_exports_faultdetect_module_and_classes() -> None:
     assert PublicRobotFaultMonitor is RobotFaultMonitor
     assert PublicFaultHistory is FaultHistory
     assert optisim.faultdetect is faultdetect
-    assert optisim.__version__ == "0.27.0"
+    assert optisim.__version__ == "0.28.0"
