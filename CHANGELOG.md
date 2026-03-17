@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.7.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.server`: a FastAPI-based REST API with health, robot preset listing, synthetic simulation, TAMP planning, LfD recording/generation, and an embedded dashboard.
+- Added `optisim-server` as a console script entry point for serving the API via Uvicorn on port 8080.
+- Added API-focused pytest coverage for server endpoints, validation failures, and dashboard delivery.
+
+### Changed
+
+- Kept `optisim.server` out of `optisim.__init__` so importing the package does not require optional web dependencies.
+- Expanded the `web` optional dependency group to include `httpx` for FastAPI `TestClient` support.
+
 ## [0.6.0] - 2026-03-17
 
 ### Added

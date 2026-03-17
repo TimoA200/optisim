@@ -1,4 +1,8 @@
-"""optisim public package interface."""
+"""optisim public package interface.
+
+The FastAPI server lives in ``optisim.server`` and is intentionally not imported
+here so importing ``optisim`` does not pull in optional web dependencies.
+"""
 
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
@@ -48,6 +52,18 @@ from optisim.lfd import (
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
 from optisim.perception import PerceptionPipeline, PointCloud, PoseEstimate, build_perception_pipeline
+from optisim.policy import (
+    BCConfig,
+    BehavioralCloningTrainer,
+    NeuralPolicy,
+    PolicyDataset,
+    PolicyNetwork,
+    PolicyStep,
+    RecurrentNeuralPolicy,
+    TrainingResult,
+    build_policy_network,
+    train_policy,
+)
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.reactive import (
     ContactPhase,
@@ -178,6 +194,16 @@ __all__ = [
     "PoseEstimate",
     "PerceptionPipeline",
     "build_perception_pipeline",
+    "BCConfig",
+    "BehavioralCloningTrainer",
+    "NeuralPolicy",
+    "PolicyDataset",
+    "PolicyNetwork",
+    "PolicyStep",
+    "RecurrentNeuralPolicy",
+    "TrainingResult",
+    "build_policy_network",
+    "train_policy",
     "ValidationReport",
     "MotionPlanner",
     "PlanningResult",
@@ -237,4 +263,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.5.0"
+__version__ = "0.7.0"

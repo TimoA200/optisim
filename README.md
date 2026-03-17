@@ -33,6 +33,7 @@
 - ✅ `optisim.multi`: shared-world multi-robot fleet coordination with dependency-aware task scheduling
 - ✅ `optisim.library`: 12 built-in humanoid task templates for rapid scenario bootstrapping
 - ✅ `optisim.analytics`: trajectory metrics, run comparison, and profiling helpers
+- ✅ `optisim.policy`: pure-numpy behavioral cloning — train neural policies from demonstrations, MLP network with Adam optimizer, stateless and stateful (history-window) executors
 - ✅ `optisim.gym_env`: OpenAI Gymnasium environment wrapper for RL-style experimentation
 - ✅ `optisim.safety`: safety zones, joint limits, emergency stop handling, and `SafetyConfig` humanoid presets
 - ✅ `optisim.sensors`: force/torque, proximity, encoder, IMU, and depth-camera simulation with configurable noise models

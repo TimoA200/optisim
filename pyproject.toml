@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optisim"
-version = "0.5.0"
+version = "0.7.0"
 description = "Lightweight humanoid robot task planner and simulator"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,9 +42,9 @@ dependencies = [
 [project.optional-dependencies]
 gym = ["gymnasium>=0.29"]
 viz = ["matplotlib>=3.8"]
-web = ["fastapi>=0.115", "uvicorn>=0.30"]
+web = ["fastapi>=0.115", "uvicorn>=0.30", "httpx>=0.27"]
 rl = ["gymnasium>=0.29"]
-dev = ["build>=1.2", "pytest>=8.0", "ruff>=0.4", "twine>=5.0"]
+dev = ["build>=1.2", "pytest>=8.0", "ruff>=0.4", "twine>=5.0", "httpx>=0.27"]
 
 [project.urls]
 Homepage = "https://github.com/TimoA200/optisim"
@@ -54,6 +54,7 @@ Documentation = "https://github.com/TimoA200/optisim/tree/main/docs"
 
 [project.scripts]
 optisim = "optisim.cli:main"
+optisim-server = "optisim.server:run_server"
 
 [tool.setuptools]
 include-package-data = false
