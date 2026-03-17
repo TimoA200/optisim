@@ -18,7 +18,10 @@ from optisim.library import TaskCatalog
 from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
+from optisim.scenario import ScenarioConfig, ScenarioRunner
+from optisim.safety import SafetyConfig
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
+from optisim.sensors import SensorSuite
 from optisim.viz import MatplotlibVisualizer, TerminalVisualizer, WebVisualizer
 
 
@@ -121,6 +124,16 @@ def build_parser() -> argparse.ArgumentParser:
     multi_parser = subparsers.add_parser("multi", help="run a multi-robot coordination scenario")
     multi_parser.add_argument("scenario_file", nargs="?", type=Path, default=Path("examples/multi_robot_warehouse.yaml"))
 
+    scenario_parser = subparsers.add_parser("scenario", help="run a full scenario with sensors and safety monitoring")
+    scenario_parser.add_argument("task_file", type=Path)
+    scenario_parser.add_argument("--seed", type=int, default=42, help="RNG seed for sensor noise")
+    scenario_parser.add_argument("--dt", type=float, default=0.05, help="simulation timestep in seconds")
+    scenario_parser.add_argument("--no-safety", action="store_true", help="disable safety monitoring")
+    scenario_parser.add_argument("--no-sensors", action="store_true", help="disable sensor simulation")
+    scenario_parser.add_argument("--visualize", action="store_true")
+    scenario_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
+    scenario_parser.add_argument("--summary-out", type=Path, help="write scenario summary to a text file")
+
     grasp_parser = subparsers.add_parser("grasp", help="plan grasps for objects in a task file")
     grasp_parser.add_argument("task_file", type=Path)
     grasp_parser.add_argument(
@@ -200,6 +213,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "multi":
         return _run_multi(args)
+
+    if args.command == "scenario":
+        return _run_scenario(args)
 
     if args.command == "grasp":
         return _run_grasp(args)
@@ -588,6 +604,25 @@ def _run_multi(args: argparse.Namespace) -> int:
                 f"  {collision.robot_a}.{collision.link_a} vs "
                 f"{collision.robot_b}.{collision.link_b} distance={collision.distance:.3f}m"
             )
+    return 0
+
+
+def _run_scenario(args: argparse.Namespace) -> int:
+    task = TaskDefinition.from_file(args.task_file)
+    config = ScenarioConfig(
+        name=task.name,
+        task=task,
+        sensor_suite=None if args.no_sensors else SensorSuite.default_humanoid_suite(),
+        safety_config=None if args.no_safety else SafetyConfig.default_humanoid(),
+        dt=args.dt,
+        rng_seed=args.seed,
+    )
+    runner = ScenarioRunner(config)
+    result = runner.run()
+    summary = result.summary()
+    print(summary)
+    if args.summary_out is not None:
+        args.summary_out.write_text(summary, encoding="utf-8")
     return 0
 
 
