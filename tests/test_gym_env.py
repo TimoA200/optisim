@@ -243,3 +243,5 @@ def test_render_without_mode_returns_none() -> None:
     env.reset()
 
     assert env.render() is None
+
+__all__ = ["test_reach_reward_increases_when_effector_moves_toward_target", "test_reach_reward_pays_success_bonus_only_once", "test_task_completion_reward_only_triggers_once", "test_collision_penalty_uses_collision_count_by_default", "test_composite_reward_sums_subrewards", "test_default_env_creation_exposes_flat_box_spaces", "test_custom_observation_config_changes_observation_shape", "test_reset_returns_observation_inside_space", "test_step_with_random_action_returns_gymnasium_tuple", "test_action_and_observation_shapes_match_component_counts", "test_episode_truncates_at_max_steps", "test_record_episode_wrapper_writes_optisim_recording", "test_registration_helper_supports_gymnasium_make", "test_flatten_joints_wrapper_exposes_joint_slice_only", "test_normalize_observation_wrapper_preserves_shape", "test_task_definition_path_can_be_used_for_env_creation", "test_default_reset_creates_recording_handle", "test_render_without_mode_returns_none"]

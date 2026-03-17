@@ -125,3 +125,5 @@ class AssignmentValidator:
 
 
 from optisim.multi.fleet import RobotFleet
+
+__all__ = ["Dependency", "TaskAssignment", "AssignmentValidator"]

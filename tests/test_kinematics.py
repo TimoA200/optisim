@@ -17,3 +17,5 @@ def test_joint_limits_are_respected() -> None:
     robot = build_demo_humanoid()
     robot.set_joint_positions({"right_elbow_pitch": 100.0})
     assert robot.joint_positions["right_elbow_pitch"] <= robot.joints["right_elbow_pitch"].limit_upper
+
+__all__ = ["test_forward_kinematics_produces_end_effector_pose", "test_joint_limits_are_respected"]

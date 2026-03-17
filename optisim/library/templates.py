@@ -539,3 +539,5 @@ def _pick_move_place_actions(
         ActionPrimitive.move(target=target, destination=destination, end_effector="right_palm"),
         ActionPrimitive.place(target=target, support=support, end_effector="right_palm"),
     ]
+
+__all__ = ["builtin_templates", "pick_and_place", "table_clearing", "dish_loading", "laundry_folding", "shelf_stocking", "drawer_open_close", "assembly_line_pick", "pallet_stacking", "bin_sorting", "tool_handover", "walk_and_pickup", "multi_room_delivery"]

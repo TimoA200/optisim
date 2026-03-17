@@ -238,3 +238,5 @@ def test_cli_reports_missing_optional_visualizer_dependencies_with_install_hint(
 
     assert exit_code == 1
     assert "pip install optisim[web]" in output
+
+__all__ = ["test_end_to_end_pick_and_place_simulation_moves_object_to_shelf", "test_ik_then_fk_returns_same_pose", "test_recording_round_trip_replay_preserves_frame_count", "test_cli_validate_run_and_sim_commands_emit_expected_output", "test_web_visualizer_can_be_instantiated_without_crashing", "test_invalid_yaml_task_file_reports_clear_schema_error", "test_invalid_yaml_syntax_reports_source_file", "test_ik_failure_reports_out_of_reach_reason", "test_ik_failure_reports_joint_limit_reason", "test_cli_reports_missing_optional_visualizer_dependencies_with_install_hint"]

@@ -200,14 +200,20 @@ def _load_task_from_source(task_source: Any) -> TaskDefinition:
 
 
 def _load_robot_for_batch(task: TaskDefinition, robot_spec: str | None) -> Any:
-    from optisim.robot import build_humanoid_model, load_urdf
+    from optisim.robot import build_humanoid_model, load_robot_yaml, load_urdf
 
-    if robot_spec == "builtin":
-        return build_humanoid_model()
     if robot_spec:
-        return load_urdf(robot_spec)
+        source = Path(robot_spec)
+        if robot_spec != "builtin":
+            if source.suffix.lower() in {".yaml", ".yml"}:
+                return load_robot_yaml(source)
+            if source.suffix.lower() == ".urdf":
+                return load_urdf(source)
+            raise ValueError(f"unsupported robot spec '{robot_spec}': expected .yaml, .yml, .urdf, or 'builtin'")
     if task.robot.get("urdf"):
         return load_urdf(task.robot["urdf"])
+    if task.robot.get("yaml_spec"):
+        return load_robot_yaml(task.robot["yaml_spec"])
     if task.robot.get("model") in {None, "humanoid", "demo_humanoid", "optimus_humanoid"}:
         return build_humanoid_model()
     return build_humanoid_model()

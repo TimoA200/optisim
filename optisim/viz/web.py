@@ -593,3 +593,5 @@ class WebVisualizer:
 </body>
 </html>
 """
+
+__all__ = ["WebVisualizer"]

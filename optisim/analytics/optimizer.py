@@ -143,3 +143,5 @@ def _load_robot(payload: dict[str, Any]) -> RobotModel:
     if payload.get("model") in {None, "humanoid", "demo_humanoid", "optimus_humanoid"}:
         return build_humanoid_model()
     return build_humanoid_model()
+
+__all__ = ["ParameterRange", "SweepResult", "sweep_task", "find_best", "composite_score"]

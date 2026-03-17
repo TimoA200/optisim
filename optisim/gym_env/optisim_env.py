@@ -422,3 +422,5 @@ def register_optisim_env(env_id: str = DEFAULT_ENV_ID, **kwargs: Any) -> str:
             kwargs=kwargs,
         )
     return env_id
+
+__all__ = ["DEFAULT_ENV_ID", "ObservationConfig", "TaskTargets", "register_optisim_env"]

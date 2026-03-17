@@ -8,6 +8,7 @@ from typing import Any, Callable
 import numpy as np
 
 from optisim.core import TaskDefinition, ValidationReport
+from optisim.robot import RobotModel, build_humanoid_model
 from optisim.safety import EmergencyStop, SafetyConfig, SafetyMonitor, SafetyViolation
 from optisim.sensors import ForceTorqueSensor, IMUSensor, JointEncoderArray, ProximitySensor, SensorSuite
 from optisim.sim import ExecutionEngine, SimulationRecord, SimulationRecording, WorldState
@@ -19,6 +20,7 @@ class ScenarioConfig:
 
     name: str
     task: TaskDefinition
+    robot: RobotModel | None = None
     sensor_suite: SensorSuite | None = None
     safety_config: SafetyConfig | None = None
     dt: float = 0.05
@@ -43,6 +45,7 @@ class ScenarioConfig:
         return cls(
             name=str(payload["name"]),
             task=TaskDefinition.from_dict(payload["task"]),
+            robot=payload.get("robot"),
             sensor_suite=sensor_suite,
             safety_config=safety_config,
             dt=float(payload.get("dt", 0.05)),
@@ -257,6 +260,7 @@ class ScenarioRunner:
 
     def _build_engine(self) -> _ScenarioExecutionEngine:
         return _ScenarioExecutionEngine(
+            robot=self.config.robot if self.config.robot is not None else build_humanoid_model(),
             world=WorldState.from_dict(self.config.task.world),
             dt=self.config.dt,
         )

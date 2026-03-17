@@ -103,3 +103,5 @@ def test_all_end_effectors_are_reachable_from_their_own_recorded_poses() -> None
 
         assert result.success, effector
         assert np.linalg.norm(solved_pose.position - target_pose.position) < 6e-3
+
+__all__ = ["test_humanoid_model_construction_counts_match_expected_topology", "test_forward_kinematics_places_end_effectors_in_reasonable_workspace", "test_all_end_effectors_are_reachable_from_their_own_recorded_poses"]

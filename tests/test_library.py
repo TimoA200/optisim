@@ -130,3 +130,5 @@ def test_each_template_validates_and_runs(template_name: str) -> None:
     record = engine.run(task)
     assert record.executed_actions
     assert len(record.executed_actions) == len(task.actions)
+
+__all__ = ["EXPECTED_TEMPLATES", "test_catalog_listing_returns_all_builtin_templates", "test_catalog_search_matches_name_description_and_tags", "test_catalog_search_empty_keyword_returns_full_listing", "test_catalog_get_supports_parameterized_templates", "test_shelf_stocking_level_changes_world_height", "test_catalog_can_register_custom_templates", "test_template_export_roundtrip", "test_each_template_generates_valid_task_definition", "test_each_template_validates_and_runs"]

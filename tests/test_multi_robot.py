@@ -255,3 +255,5 @@ def test_bundled_multi_robot_example_is_valid_yaml() -> None:
 
     assert payload["robots"]
     assert payload["assignments"]
+
+__all__ = ["test_fleet_creation_with_multiple_robots", "test_base_offset_positioning_changes_robot_pose", "test_fleet_shares_single_world_state", "test_fleet_rejects_duplicate_robot_names", "test_assignment_validator_accepts_feasible_assignments", "test_assignment_validator_rejects_unknown_robot", "test_assignment_validator_rejects_invalid_dependency_robot", "test_assignment_validator_rejects_invalid_dependency_action_index", "test_assignment_validator_rejects_dependency_cycles", "test_dependency_resolution_waits_for_upstream_completion", "test_round_robin_execution_interleaves_long_running_actions", "test_inter_robot_collision_detection_reports_close_robots", "test_inter_robot_collision_detection_ignores_separated_robots", "test_multi_robot_pick_and_place_scenario_updates_shared_world", "test_coordinator_returns_per_robot_traces", "test_fleet_serialization_round_trip", "test_cli_multi_subcommand_runs_example", "test_bundled_multi_robot_example_is_valid_yaml"]

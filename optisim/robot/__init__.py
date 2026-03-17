@@ -11,6 +11,7 @@ from optisim.robot.humanoid import (
 from optisim.robot.ik import IKOptions, IKResult, solve_inverse_kinematics
 from optisim.robot.model import JointSpec, LinkSpec, RobotModel
 from optisim.robot.urdf import load_urdf
+from optisim.robot.yaml_spec import load_robot_yaml
 
 __all__ = [
     "JointController",
@@ -25,5 +26,6 @@ __all__ = [
     "build_demo_humanoid",
     "build_humanoid_model",
     "load_urdf",
+    "load_robot_yaml",
     "solve_inverse_kinematics",
 ]

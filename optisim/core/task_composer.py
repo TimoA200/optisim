@@ -44,3 +44,5 @@ class TaskComposer:
                 ActionPrimitive.place(target=target, support=support, end_effector=pickup_effector),
             ]
         )
+
+__all__ = ["TaskComposer"]

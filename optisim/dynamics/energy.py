@@ -42,3 +42,5 @@ class TaskEnergyProfile:
     total_energy: float
     peak_power: float
     energy_per_action: dict[str, float] = field(default_factory=dict)
+
+__all__ = ["kinetic_energy", "potential_energy", "total_mechanical_energy", "joint_power", "TaskEnergyProfile"]

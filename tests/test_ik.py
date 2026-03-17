@@ -82,3 +82,5 @@ def test_ik_respects_joint_limits_when_target_is_far() -> None:
     for joint_name, value in result.joint_positions.items():
         spec = robot.joints[joint_name]
         assert spec.limit_lower <= value <= spec.limit_upper
+
+__all__ = ["test_position_only_ik_converges_to_reachable_target", "test_pose_ik_converges_for_position_and_orientation", "test_ik_respects_joint_limits_when_target_is_far"]

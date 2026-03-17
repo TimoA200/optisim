@@ -1,0 +1,10 @@
+kind: humanoid_variant
+name: mini_humanoid
+spec:
+  height_m: 1.2
+  upper_arm_m: 0.22
+  forearm_m: 0.19
+  hand_m: 0.11
+end_effectors:
+  right: right_palm
+  left: left_palm

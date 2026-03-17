@@ -44,3 +44,5 @@ class MatplotlibVisualizer:
         ax.legend(loc="upper right")
         self.figure.canvas.draw()
         self.figure.canvas.flush_events()
+
+__all__ = ["MatplotlibVisualizer"]

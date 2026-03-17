@@ -88,3 +88,5 @@ def _world_to_dict(world: WorldState) -> dict[str, object]:
             for surface in world.surfaces.values()
         ],
     }
+
+__all__ = ["RobotFleet"]

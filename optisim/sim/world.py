@@ -88,3 +88,5 @@ class WorldState:
                 mass_kg=float(obj.get("mass_kg", 1.0)),
             )
         return world
+
+__all__ = ["Surface", "ObjectState", "WorldState"]

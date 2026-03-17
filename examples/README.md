@@ -8,6 +8,7 @@ Bundled examples cover the main manipulation flows currently modeled by `optisim
 - `pour_water.yaml` / `pour_water.py`: pick up a pitcher, move above a cup, rotate to simulate pouring, and return.
 - `open_door.yaml` / `open_door.py`: reach a handle target, rotate it, and pull to model a door-opening interaction.
 - `stack_blocks.yaml` / `stack_blocks.py`: execute multiple coordinated transfers to stack blocks in sequence.
+- `urdf_demo.py`: load a bundled URDF robot, solve a reach target with IK, and animate the result in the terminal.
 
 ## Run an Example
 
@@ -19,4 +20,5 @@ Or use the Python scripts directly:
 
 ```bash
 python examples/stack_blocks.py
+python examples/urdf_demo.py
 ```

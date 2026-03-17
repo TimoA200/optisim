@@ -176,3 +176,4 @@ class CompositeReward(RewardFunction):
             )
         )
 
+__all__ = ["SupportsRewardEnv", "RewardFunction", "ReachReward", "TaskCompletionReward", "CollisionPenalty", "CompositeReward"]

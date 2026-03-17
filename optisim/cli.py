@@ -18,7 +18,7 @@ from optisim.grasp import GraspExecutor, GraspPlanner, Gripper, GripperType, def
 from optisim.library import TaskCatalog
 from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner
-from optisim.robot import RobotModel, build_humanoid_model, load_urdf
+from optisim.robot import RobotModel, build_humanoid_model, load_robot_yaml, load_urdf
 from optisim.scenario import ScenarioConfig, ScenarioRunner
 from optisim.safety import SafetyConfig
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
@@ -38,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("task_file", type=Path)
     run_parser.add_argument("--visualize", action="store_true")
     run_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
+    _add_robot_spec_argument(run_parser)
 
     validate_parser = subparsers.add_parser("validate", help="validate a task file")
     validate_parser.add_argument("task_file", type=Path)
@@ -59,6 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     sim_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
     sim_parser.add_argument("--web", action="store_true", help="launch the web visualizer")
     sim_parser.add_argument("--recording-out", type=Path, help="export a JSON simulation recording")
+    _add_robot_spec_argument(sim_parser)
 
     replay_parser = subparsers.add_parser("replay", help="replay a previously exported simulation recording")
     replay_parser.add_argument("recording_file", type=Path)
@@ -135,6 +137,7 @@ def build_parser() -> argparse.ArgumentParser:
     scenario_parser.add_argument("--visualize", action="store_true")
     scenario_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
     scenario_parser.add_argument("--summary-out", type=Path, help="write scenario summary to a text file")
+    _add_robot_spec_argument(scenario_parser)
 
     grasp_parser = subparsers.add_parser("grasp", help="plan grasps for objects in a task file")
     grasp_parser.add_argument("task_file", type=Path)
@@ -156,8 +159,17 @@ def build_parser() -> argparse.ArgumentParser:
     batch_parser.add_argument("--csv", type=Path)
     batch_parser.add_argument("--json", type=Path)
     batch_parser.add_argument("--timeout", type=float, default=60.0)
+    _add_robot_spec_argument(batch_parser)
 
     return parser
+
+
+def _add_robot_spec_argument(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--robot-spec",
+        default="builtin",
+        help="robot spec path (.yaml/.yml or .urdf) or 'builtin' to use the default task/built-in robot selection",
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -242,16 +254,29 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
 
-def _load_robot(payload: dict) -> RobotModel:
+def _load_robot(payload: dict, robot_spec: str | None = None) -> RobotModel:
     """Resolve the robot configuration payload into a ``RobotModel`` instance."""
 
+    if robot_spec not in {None, "builtin"}:
+        return _load_robot_override(robot_spec)
     if not payload:
         return build_humanoid_model()
     if "urdf" in payload:
         return load_urdf(payload["urdf"])
+    if "yaml_spec" in payload:
+        return load_robot_yaml(payload["yaml_spec"])
     if payload.get("model") in {None, "humanoid", "demo_humanoid", "optimus_humanoid"}:
         return build_humanoid_model()
     return build_humanoid_model()
+
+
+def _load_robot_override(robot_spec: str) -> RobotModel:
+    source = Path(robot_spec)
+    if source.suffix.lower() in {".yaml", ".yml"}:
+        return load_robot_yaml(source)
+    if source.suffix.lower() == ".urdf":
+        return load_urdf(source)
+    raise ValueError(f"unsupported robot spec '{robot_spec}': expected .yaml, .yml, .urdf, or 'builtin'")
 
 
 def _build_visualizer(args: argparse.Namespace):
@@ -266,7 +291,7 @@ def _execute_task_definition(task: TaskDefinition, args: argparse.Namespace) -> 
     """Run a task definition through the execution engine and CLI presentation layer."""
 
     world = WorldState.from_dict(task.world)
-    robot = _load_robot(task.robot)
+    robot = _load_robot(task.robot, getattr(args, "robot_spec", None))
     engine = ExecutionEngine(robot=robot, world=world)
     visualizer = _build_visualizer(args)
 
@@ -630,6 +655,7 @@ def _run_scenario(args: argparse.Namespace) -> int:
     config = ScenarioConfig(
         name=task.name,
         task=task,
+        robot=_load_robot(task.robot, args.robot_spec),
         sensor_suite=None if args.no_sensors else SensorSuite.default_humanoid_suite(),
         safety_config=None if args.no_safety else SafetyConfig.default_humanoid(),
         dt=args.dt,
@@ -727,6 +753,7 @@ def _run_batch(args: argparse.Namespace) -> int:
         n_workers=args.workers if args.workers is not None else min(4, len(tasks) or 1),
         timeout_per_task=args.timeout,
         repeat=args.repeat,
+        robot_spec=args.robot_spec,
         output_dir=args.output_dir,
     )
 

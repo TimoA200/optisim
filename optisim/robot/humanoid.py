@@ -320,3 +320,5 @@ def build_demo_humanoid(spec: HumanoidSpec | None = None) -> RobotModel:
     """Backward-compatible alias for the built-in humanoid model."""
 
     return build_humanoid_model(spec)
+
+__all__ = ["HumanoidSpec", "BuiltInHumanoid", "DemoHumanoidSpec", "build_humanoid_model", "build_demo_humanoid"]

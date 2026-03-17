@@ -140,3 +140,5 @@ class TaskCatalog:
         """Return a normalized similarity score between two strings."""
 
         return SequenceMatcher(a=left, b=right).ratio()
+
+__all__ = ["DifficultyLevel", "TemplateParameter", "TemplateInfo", "TaskBuilder", "TaskTemplate", "TaskCatalog"]

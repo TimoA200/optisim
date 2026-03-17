@@ -126,3 +126,5 @@ class TaskValidator:
             report.errors.append(ValidationIssue("place action requires support", action_index=index))
         if action.action_type is ActionType.ROTATE and action.angle_rad is None:
             report.errors.append(ValidationIssue("rotate action requires angle_rad", action_index=index))
+
+__all__ = ["ValidationIssue", "ValidationReport", "TaskValidator"]

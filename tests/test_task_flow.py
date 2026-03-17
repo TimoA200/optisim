@@ -40,3 +40,5 @@ def test_move_without_grasp_is_invalid() -> None:
     engine = ExecutionEngine(world=WorldState.with_defaults())
     report = engine.validate(task)
     assert not report.is_valid
+
+__all__ = ["test_examples_validate_and_run", "test_move_without_grasp_is_invalid"]

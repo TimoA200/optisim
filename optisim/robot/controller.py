@@ -27,3 +27,5 @@ class JointController:
             updated[joint_name] = spec.clamp(current + float(np.clip(delta, -max_delta, max_delta)))
         self.robot.set_joint_positions(updated)
         return updated
+
+__all__ = ["JointController"]

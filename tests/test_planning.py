@@ -170,3 +170,5 @@ def test_planner_plan_to_pose_uses_ik() -> None:
     assert isinstance(result.success, bool)
     assert result.iterations >= 0
     assert result.planning_time >= 0.0
+
+__all__ = ["test_rrt_config_defaults", "test_planning_result_fields", "test_rrt_finds_path_in_free_space", "test_rrt_connect_finds_path", "test_planner_same_config_succeeds", "test_planner_different_configs_left_arm", "test_shortcut_reduces_waypoints", "test_shortcut_preserves_short_path", "test_rrt_respects_obstacle", "test_planner_plan_to_pose_uses_ik"]

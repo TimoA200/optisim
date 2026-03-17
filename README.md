@@ -10,8 +10,11 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Tests](https://github.com/TimoA200/optisim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/TimoA200/optisim/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/badge/PyPI-placeholder-0A66C2)](https://pypi.org/project/optisim/)
 
-`optisim` is a lightweight humanoid robot task planner and simulator for teams that want to move faster than a full robotics stack allows. It sits in the practical middle ground between task specs and heavyweight sim/control infrastructure, giving you a 31-DOF humanoid, inverse kinematics, deterministic execution, motion planning, behavior trees, grasp analysis, safety monitoring, sensor simulation, and terminal-first visualization in a small pure-Python package shaped for the current wave of general-purpose humanoid robotics, including Tesla Optimus-style manipulation workflows. The package currently ships with 12 built-in task templates and 231 tests.
+![Demo GIF placeholder](docs/assets/optisim-demo-placeholder.svg)
+
+`optisim` is a lightweight humanoid robot task planner and simulator for teams that want to move faster than a full robotics stack allows. It sits in the practical middle ground between task specs and heavyweight sim/control infrastructure, giving you a 31-DOF humanoid, inverse kinematics, deterministic execution, motion planning, behavior trees, grasp analysis, safety monitoring, sensor simulation, and terminal-first visualization in a small pure-Python package shaped for the current wave of general-purpose humanoid robotics, including Tesla Optimus-style manipulation workflows. The package currently ships with 12 built-in task templates and a broad pytest-backed CI suite.
 
 ## Features
 
@@ -29,7 +32,7 @@
 - ✅ `optisim.gym_env`: OpenAI Gymnasium environment wrapper for RL-style experimentation
 - ✅ `optisim.safety`: safety zones, joint limits, emergency stop handling, and `SafetyConfig` humanoid presets
 - ✅ `optisim.sensors`: force/torque, proximity, encoder, IMU, and depth-camera simulation with configurable noise models
-- ✅ Typed pure-Python API with PEP 561 marker support and a pytest-backed CI suite covering 231 tests
+- ✅ Typed pure-Python API with PEP 561 marker support and a broad pytest-backed CI suite
 
 ## Quick Start
 
@@ -38,7 +41,10 @@ python -m venv .venv
 source .venv/bin/activate && pip install -e .
 python -m optisim run examples/stack_blocks.yaml --visualize
 python -m optisim multi examples/multi_robot_warehouse.yaml
+python -m optisim sim examples/pick_and_place.yaml --web
 ```
+
+3D web visualizer demo: run `optisim sim examples/pick_and_place.yaml --web`
 
 ## Architecture
 
@@ -133,6 +139,7 @@ See [examples/README.md](/root/.openclaw/workspace/optisim/examples/README.md) f
 - `open_door`: reach, rotate, and pull a door interaction target
 - `stack_blocks`: chain multiple object transfers into a simple assembly task
 - `multi_robot_warehouse`: two humanoids sort warehouse parcels with dependency-aware fleet coordination
+- `urdf_demo.py`: load a bundled RRBot-style URDF arm, solve a reach target with IK, and animate it in the terminal
 
 ## Task Library
 

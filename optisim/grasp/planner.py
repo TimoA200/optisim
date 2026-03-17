@@ -214,3 +214,5 @@ def _face_area_for_normal(local_normal: np.ndarray, size: tuple[float, float, fl
     extents = [float(value) for value in size]
     del extents[axis_index]
     return extents[0] * extents[1]
+
+__all__ = ["GraspPose", "GraspPlanner"]

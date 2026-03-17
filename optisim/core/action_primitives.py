@@ -180,3 +180,5 @@ class ActionPrimitive:
             axis=tuple(float(v) for v in axis),
             angle_rad=angle_rad,
         )
+
+__all__ = ["ActionType", "ActionPrimitive"]

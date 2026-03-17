@@ -284,3 +284,5 @@ class TaskCoordinator:
         engine.world.objects[action.target].held_by = engine._held_by_name(action.end_effector)
         yield from self._move_object(engine, translated, recording, active_action)
         engine.world.objects[action.target].held_by = None
+
+__all__ = ["RobotTrace", "MultiRobotRecord", "TaskCoordinator"]

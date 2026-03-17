@@ -288,3 +288,5 @@ def replay_recording(
 
     if visualizer is not None:
         visualizer.finish(task, world, robot, [])
+
+__all__ = ["RecordingFrame", "SimulationRecording", "apply_frame_to_runtime", "replay_recording"]

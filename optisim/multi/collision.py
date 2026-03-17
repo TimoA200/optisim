@@ -58,3 +58,5 @@ def _aabb_distance(
 ) -> float:
     gap = np.maximum(vec3([0.0, 0.0, 0.0]), np.maximum(a_min - b_max, b_min - a_max))
     return float(np.linalg.norm(gap))
+
+__all__ = ["InterRobotCollision", "inter_robot_collisions"]

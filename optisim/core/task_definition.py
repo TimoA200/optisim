@@ -124,3 +124,5 @@ class TaskDefinition:
             world=dict(world or {}),
             robot=dict(robot or {}),
         )
+
+__all__ = ["TaskDefinition"]

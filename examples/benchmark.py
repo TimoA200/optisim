@@ -99,7 +99,7 @@ def benchmark_ik_by_joint_count(console: Console, joint_counts: list[int]) -> No
         }
         target_pose = robot.end_effector_pose("tool", target_positions)
         stats = sample_benchmark(
-            runs=60,
+            runs=20,
             fn=lambda: solve_inverse_kinematics(
                 robot,
                 "tool",
@@ -141,7 +141,7 @@ def benchmark_fk_by_joint_count(console: Console, joint_counts: list[int]) -> No
                 for index, joint_name in enumerate(robot.joints)
             }
         )
-        stats = sample_benchmark(runs=2_000, fn=robot.forward_kinematics)
+        stats = sample_benchmark(runs=1_000, fn=robot.forward_kinematics)
         table.add_row(
             str(len(robot.links)),
             str(stats.runs),
@@ -165,7 +165,7 @@ def benchmark_simulation_step(console: Console) -> None:
             "right_elbow_pitch": 1.2,
         }
     )
-    stats = sample_benchmark(runs=5_000, fn=engine.step)
+    stats = sample_benchmark(runs=2_000, fn=engine.step)
 
     table = Table(title="Simulation Step Runtime", header_style="bold magenta")
     table.add_column("Workload")

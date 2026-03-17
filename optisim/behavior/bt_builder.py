@@ -374,3 +374,5 @@ def _object_on_surface(context: BehaviorContext, target: str, surface_name: str,
     surface = context.world.surfaces[surface_name]
     expected_z = surface.pose.position[2] + surface.size[2] / 2.0 + obj.size[2] / 2.0
     return abs(float(obj.pose.position[2] - expected_z)) <= tolerance
+
+__all__ = ["BehaviorTreeDefinition", "BehaviorTreeBuilder", "load_node_from_dict", "build_condition_predicate"]

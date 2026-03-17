@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">optisim demo placeholder</title>
+  <desc id="desc">Placeholder artwork for a future optisim demo GIF.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="55%" stop-color="#0f2b46"/>
+      <stop offset="100%" stop-color="#183b2d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="72" y="64" width="1056" height="502" rx="28" fill="#06111b" stroke="#5fd1ff" stroke-width="3"/>
+  <rect x="106" y="112" width="560" height="360" rx="20" fill="#0d1925" stroke="#2c5b77"/>
+  <rect x="716" y="112" width="378" height="360" rx="20" fill="#0d1925" stroke="#2c5b77"/>
+  <path d="M185 392 L282 302 L390 244 L482 299 L556 220" fill="none" stroke="#ffb347" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="185" cy="392" r="13" fill="#f8f8f8"/>
+  <circle cx="282" cy="302" r="13" fill="#f8f8f8"/>
+  <circle cx="390" cy="244" r="13" fill="#f8f8f8"/>
+  <circle cx="482" cy="299" r="13" fill="#f8f8f8"/>
+  <circle cx="556" cy="220" r="13" fill="#7dffb3"/>
+  <rect x="760" y="164" width="290" height="18" rx="9" fill="#18374d"/>
+  <rect x="760" y="214" width="244" height="18" rx="9" fill="#18374d"/>
+  <rect x="760" y="264" width="318" height="18" rx="9" fill="#18374d"/>
+  <rect x="760" y="342" width="220" height="44" rx="12" fill="#153726" stroke="#7dffb3"/>
+  <text x="106" y="535" fill="#f5fbff" font-family="monospace" font-size="36">Demo GIF placeholder</text>
+  <text x="106" y="580" fill="#8eb9d0" font-family="monospace" font-size="24">Record terminal + web visualizer walkthrough and replace this asset.</text>
+</svg>

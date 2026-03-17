@@ -169,3 +169,5 @@ def test_analyze_trajectory_single_frame() -> None:
     assert metrics.smoothness_score == 1.0
     assert metrics.collision_count == 0
     assert metrics.collision_time_s == 0.0
+
+__all__ = ["test_analyze_trajectory_minimal_recording", "test_compare_trajectories_prefers_lower_cost_and_higher_smoothness", "test_analyze_trajectory_empty_recording", "test_analyze_trajectory_single_frame"]

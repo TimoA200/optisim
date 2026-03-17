@@ -257,3 +257,5 @@ def test_batch_no_task_files_uses_builtin_templates() -> None:
 
     assert len(result.results) == 2
     assert all(item.success for item in result.results)
+
+__all__ = ["test_run_batch_with_one_task_one_worker", "test_run_batch_with_multiple_tasks_multiple_workers", "test_batch_result_to_csv_writes_valid_csv", "test_batch_result_to_json_writes_valid_json", "test_failed_task_is_captured_in_result_not_raised", "test_timeout_handling", "test_repeat_produces_multiple_results", "test_summary_table_returns_non_empty_string", "test_batch_config_defaults_are_sensible", "test_cli_batch_command_with_builtin_library_tasks", "test_to_dataframe_raises_import_error_when_pandas_absent", "test_output_dir_creates_recording_files", "test_batch_parser_accepts_subcommand", "test_batch_no_task_files_uses_builtin_templates"]

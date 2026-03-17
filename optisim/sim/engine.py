@@ -342,3 +342,5 @@ class Visualizer:
         """Finalize visualization after task completion."""
 
         return None
+
+__all__ = ["SimulationRecord", "ExecutionEngine", "Visualizer"]

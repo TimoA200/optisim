@@ -164,3 +164,5 @@ def _box_projection_width(rotation: np.ndarray, size: tuple[float, float, float]
     extents = np.asarray(size, dtype=np.float64)
     world_axes = [rotation[:, index] for index in range(3)]
     return float(sum(abs(np.dot(unit_axis, basis)) * extent for basis, extent in zip(world_axes, extents, strict=True)))
+
+__all__ = ["ContactPoint", "ContactPatch", "surface_contacts", "friction_cone_check"]

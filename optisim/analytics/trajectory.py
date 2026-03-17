@@ -233,3 +233,5 @@ def _compare_action_durations(a: dict[str, float], b: dict[str, float]) -> dict[
     }
     totals = _compare_scalar(sum(a.values()), sum(b.values()), lower_is_better=True)
     return {"per_action": per_action, "total": totals, "better": totals["better"]}
+
+__all__ = ["TrajectoryMetrics", "analyze_trajectory", "compare_trajectories"]

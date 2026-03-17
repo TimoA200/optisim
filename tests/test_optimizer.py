@@ -68,3 +68,5 @@ def test_sweep_task_empty_parameter_ranges_returns_baseline() -> None:
     assert results[0].parameters == {}
     assert results[0].recording.task_name == task.name
     assert results[0].metrics.total_frames > 0
+
+__all__ = ["test_sweep_task_speed_variation_on_pick_and_place", "test_find_best_returns_expected_winner", "test_sweep_task_empty_parameter_ranges_returns_baseline"]
