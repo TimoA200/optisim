@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.20.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.terrain`: `HeightMap`, `TerrainPatch`, `TerrainAnalyzer`, `TerrainAdaptiveFootstep`, and `TerrainCostMap`.
+- Added bilinear terrain sampling, slope and normal estimation, flat and step region analysis, and terrain-aware footstep height adjustment.
+- Added terrain module pytest coverage for terrain representation, analysis, traversability, and planning cost behavior.
+
 ## [0.15.0] - 2026-03-17
 
 ### Added

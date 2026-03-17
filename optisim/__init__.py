@@ -5,6 +5,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 """
 
 from . import scene as scene
+from . import terrain as terrain
 from . import benchmark as benchmark
 from . import contact as contact
 from . import curriculum as curriculum
@@ -152,6 +153,7 @@ from optisim.sensors import (
     SensorNoise,
     SensorSuite,
 )
+from optisim.terrain import HeightMap, TerrainAdaptiveFootstep, TerrainAnalyzer, TerrainCostMap, TerrainPatch
 from optisim.safety import (
     EmergencyStop,
     JointSafetyLimit,
@@ -206,6 +208,7 @@ __all__ = [
     "footstep",
     "language",
     "retarget",
+    "terrain",
     "worldmodel",
     "BatchConfig",
     "BatchResult",
@@ -385,6 +388,11 @@ __all__ = [
     "ProximitySensor",
     "SensorNoise",
     "SensorSuite",
+    "HeightMap",
+    "TerrainPatch",
+    "TerrainAnalyzer",
+    "TerrainAdaptiveFootstep",
+    "TerrainCostMap",
     "EmergencyStop",
     "JointSafetyLimit",
     "SafetyConfig",
@@ -424,4 +432,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.19.0"
+__version__ = "0.20.0"
