@@ -5,8 +5,10 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 """
 
 from . import scene as scene
+from . import benchmark as benchmark
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
+from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkResult, BenchmarkSuite, BenchmarkTask
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.bimanual import BimanualCoordinator, BimanualTask, CooperativeManipulation, TaskPresets
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
@@ -150,11 +152,17 @@ __all__ = [
     "TrajectoryMetrics",
     "analyze_trajectory",
     "compare_trajectories",
+    "benchmark",
     "BatchConfig",
     "BatchResult",
     "BatchRunner",
     "BatchTaskResult",
     "run_batch",
+    "BenchmarkTask",
+    "BenchmarkSuite",
+    "BenchmarkResult",
+    "BenchmarkEvaluator",
+    "BenchmarkReporter",
     "BTStatus",
     "BehaviorTreeBuilder",
     "BehaviorTreeExecutor",
@@ -309,4 +317,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.10.0"
+__version__ = "0.11.0"

@@ -11,6 +11,7 @@ import yaml
 from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.batch import BatchConfig, BatchTaskResult
+from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkSuite
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
 from optisim.dynamics import ConstraintSet, DynamicsValidator, PayloadConstraint
@@ -161,6 +162,12 @@ def build_parser() -> argparse.ArgumentParser:
     batch_parser.add_argument("--timeout", type=float, default=60.0)
     _add_robot_spec_argument(batch_parser)
 
+    benchmark_parser = subparsers.add_parser("benchmark", help="run standardized manipulation benchmarks")
+    benchmark_parser.add_argument("--task", help="run a single benchmark task by name")
+    benchmark_parser.add_argument("--all", action="store_true", help="run all benchmark tasks")
+    benchmark_parser.add_argument("--list", action="store_true", help="list available benchmark tasks")
+    benchmark_parser.add_argument("--format", choices=("table", "json", "csv"), default="table")
+
     return parser
 
 
@@ -247,9 +254,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "batch":
             return _run_batch(args)
 
+        if args.command == "benchmark":
+            return _run_benchmark(args)
+
         task = TaskDefinition.from_file(args.task_file)
         return _execute_task_definition(task, args)
-    except (ModuleNotFoundError, RuntimeError, ValueError) as exc:
+    except (KeyError, ModuleNotFoundError, RuntimeError, ValueError) as exc:
         print(f"error: {exc}")
         return 1
 
@@ -487,6 +497,27 @@ def _run_sweep(args: argparse.Namespace) -> int:
             f"collisions={result.metrics.collision_count}"
         )
 
+    return 0
+
+
+def _run_benchmark(args: argparse.Namespace) -> int:
+    suite = BenchmarkSuite.DEFAULT
+    if args.list:
+        for name in suite.list_tasks():
+            task = suite.get(name)
+            print(f"{name}\t{task.difficulty}\t{','.join(task.tags)}")
+        return 0
+
+    task_names = None if args.all or not args.task else [args.task]
+    evaluator = BenchmarkEvaluator()
+    reporter = BenchmarkReporter()
+    results = evaluator.run_suite(suite, task_names=task_names)
+    if args.format == "json":
+        print(reporter.to_json(results))
+    elif args.format == "csv":
+        print(reporter.to_csv(results), end="")
+    else:
+        print(reporter.format_table(results))
     return 0
 
 

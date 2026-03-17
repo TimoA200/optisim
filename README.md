@@ -33,6 +33,7 @@
 - ✅ `optisim.multi`: shared-world multi-robot fleet coordination with dependency-aware task scheduling
 - ✅ `optisim.library`: 12 built-in humanoid task templates for rapid scenario bootstrapping
 - ✅ `optisim.analytics`: trajectory metrics, run comparison, and profiling helpers
+- ✅ `optisim.benchmark`: standardized humanoid manipulation benchmark suites, evaluators, and report export helpers
 - ✅ `optisim.policy`: pure-numpy behavioral cloning — train neural policies from demonstrations, MLP network with Adam optimizer, stateless and stateful (history-window) executors
 - ✅ `optisim.rl`: pure-numpy PPO reinforcement learning — train agents in OptisimEnv, Actor-Critic network, GAE rollout buffer, clipped surrogate loss, callbacks, and evaluation utilities
 - ✅ `optisim.gym_env`: OpenAI Gymnasium environment wrapper for RL-style experimentation
