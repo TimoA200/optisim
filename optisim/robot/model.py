@@ -75,6 +75,24 @@ class RobotModel:
             self._child_map[joint.parent].append(joint)
             self._joint_by_child[joint.child] = joint
 
+    @property
+    def joint_names(self) -> list[str]:
+        """Return the ordered joint names for this model."""
+
+        return list(self.joints)
+
+    @property
+    def dof(self) -> int:
+        """Return the number of actuated joints."""
+
+        return len(self.joints)
+
+    @property
+    def home_config(self) -> NDArray[np.float64]:
+        """Return the nominal home configuration as a dense vector."""
+
+        return np.asarray([self.joint_positions[name] for name in self.joint_names], dtype=np.float64)
+
     def max_reach(self) -> float:
         """Estimate the maximum reach of arm-like end effectors."""
 

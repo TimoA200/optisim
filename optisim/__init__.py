@@ -11,6 +11,7 @@ from . import curriculum as curriculum
 from . import dexterous as dexterous
 from . import export as export
 from . import footstep as footstep
+from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
@@ -130,6 +131,7 @@ from optisim.reactive import (
     ReactiveState,
     run_reactive_manipulation,
 )
+from optisim.retarget import Joint3D, JointMapping, ReferenceSkeleton, RetargetMapping, RetargetResult, RetargetSolver
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
 from optisim.scenario import (
     ScenarioConfig,
@@ -200,6 +202,7 @@ __all__ = [
     "dexterous",
     "export",
     "footstep",
+    "retarget",
     "worldmodel",
     "BatchConfig",
     "BatchResult",
@@ -345,6 +348,12 @@ __all__ = [
     "ReactiveExecutionResult",
     "ReactiveState",
     "run_reactive_manipulation",
+    "Joint3D",
+    "ReferenceSkeleton",
+    "JointMapping",
+    "RetargetMapping",
+    "RetargetResult",
+    "RetargetSolver",
     "DemoHumanoidSpec",
     "HumanoidSpec",
     "RobotModel",
@@ -407,4 +416,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.16.0"
+__version__ = "0.18.0"
