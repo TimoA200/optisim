@@ -101,6 +101,14 @@ def build_parser() -> argparse.ArgumentParser:
     library_export_parser.add_argument("--param", action="append", default=[], metavar="KEY=VALUE")
     library_export_parser.add_argument("--output", type=Path, required=True)
 
+    gym_parser = subparsers.add_parser("gym", help="launch a random-agent Gymnasium demo")
+    gym_parser.add_argument("--task-file", type=Path, default=Path("examples/pick_and_place.yaml"))
+    gym_parser.add_argument("--episodes", type=int, default=1)
+    gym_parser.add_argument("--max-steps", type=int, default=100)
+    gym_parser.add_argument("--render", action="store_true")
+    gym_parser.add_argument("--backend", choices=("terminal", "web"), default="terminal")
+    gym_parser.add_argument("--recording-dir", type=Path, help="directory for optional episode recordings")
+
     return parser
 
 
@@ -137,6 +145,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "library":
         return _run_library(args)
+
+    if args.command == "gym":
+        return _run_gym_demo(args)
 
     task = TaskDefinition.from_file(args.task_file)
     return _execute_task_definition(task, args)
@@ -301,6 +312,46 @@ def _run_plan(args: argparse.Namespace) -> int:
     finally:
         if isinstance(visualizer, WebVisualizer):
             visualizer.close()
+
+
+def _run_gym_demo(args: argparse.Namespace) -> int:
+    try:
+        import gymnasium as gym
+        from optisim.gym_env import RecordEpisode, register_optisim_env
+    except ModuleNotFoundError:
+        print("gymnasium support is not installed. Install with `pip install optisim[gym]`.")
+        return 1
+
+    env_id = register_optisim_env(
+        max_steps=args.max_steps,
+        task_definition=args.task_file,
+        render_mode="web" if args.render and args.backend == "web" else ("human" if args.render else None),
+        render_backend=args.backend,
+    )
+    env = gym.make(env_id)
+    if args.recording_dir is not None:
+        env = RecordEpisode(env, output_dir=args.recording_dir)
+
+    try:
+        for episode in range(args.episodes):
+            observation, info = env.reset(seed=episode)
+            total_reward = 0.0
+            steps = 0
+            terminated = False
+            truncated = False
+            while not (terminated or truncated):
+                action = env.action_space.sample()
+                observation, reward, terminated, truncated, info = env.step(action)
+                total_reward += float(reward)
+                steps += 1
+            print(
+                f"episode={episode} steps={steps} reward={total_reward:.3f} "
+                f"task_complete={info.get('task_complete', False)}"
+            )
+            del observation
+    finally:
+        env.close()
+    return 0
 
 
 def _run_sweep(args: argparse.Namespace) -> int:
