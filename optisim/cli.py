@@ -13,6 +13,8 @@ from optisim.viz import MatplotlibVisualizer, TerminalVisualizer
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the top-level command-line parser for the ``optisim`` CLI."""
+
     parser = argparse.ArgumentParser(prog="optisim", description="Humanoid robot task planner and simulator")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -34,6 +36,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the CLI with optional argument overrides and return a process exit code."""
+
     args = build_parser().parse_args(argv)
     task = TaskDefinition.from_file(args.task_file)
     world = WorldState.from_dict(task.world)
@@ -65,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _load_robot(payload: dict) -> RobotModel:
+    """Resolve the robot configuration payload into a ``RobotModel`` instance."""
+
     if not payload:
         return build_humanoid_model()
     if "urdf" in payload:

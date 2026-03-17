@@ -18,6 +18,8 @@ Vector3 = NDArray[np.float64]
 
 @dataclass(slots=True)
 class LinkSpec:
+    """Visual and topological metadata for a robot link."""
+
     name: str
     parent_joint: str | None = None
     visual_extent: tuple[float, float, float] = (0.08, 0.08, 0.08)
@@ -25,6 +27,8 @@ class LinkSpec:
 
 @dataclass(slots=True)
 class JointSpec:
+    """Joint definition with limits and kinematic parameters."""
+
     name: str
     parent: str
     child: str
@@ -40,6 +44,8 @@ class JointSpec:
     dh_theta_offset: float = 0.0
 
     def clamp(self, value: float) -> float:
+        """Clamp a joint position to this joint's configured limits."""
+
         return float(np.clip(value, self.limit_lower, self.limit_upper))
 
 
@@ -56,6 +62,8 @@ class RobotModel:
     joint_positions: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        """Normalize initial joint state and cache traversal helpers."""
+
         for name, joint in self.joints.items():
             self.joint_positions.setdefault(name, 0.0)
             self.joint_positions[name] = joint.clamp(self.joint_positions[name])
@@ -66,6 +74,8 @@ class RobotModel:
             self._joint_by_child[joint.child] = joint
 
     def max_reach(self) -> float:
+        """Estimate the maximum reach of arm-like end effectors."""
+
         reach = 0.0
         for effector, link_name in self.end_effectors.items():
             if "palm" not in effector and "gripper" not in effector:
@@ -77,10 +87,14 @@ class RobotModel:
         return max(reach + torso_bonus, 0.75)
 
     def set_joint_positions(self, values: dict[str, float]) -> None:
+        """Update one or more joint positions while enforcing limits."""
+
         for name, value in values.items():
             self.joint_positions[name] = self.joints[name].clamp(value)
 
     def forward_kinematics(self, joint_positions: dict[str, float] | None = None) -> dict[str, Pose]:
+        """Compute world poses for every reachable link in the robot tree."""
+
         positions = self._merged_positions(joint_positions)
         poses: dict[str, Pose] = {self.root_link: self.base_pose}
 
@@ -95,10 +109,14 @@ class RobotModel:
         return poses
 
     def end_effector_pose(self, effector: str, joint_positions: dict[str, float] | None = None) -> Pose:
+        """Return the pose of a named end effector."""
+
         link_name = self.end_effectors[effector]
         return self.forward_kinematics(joint_positions)[link_name]
 
     def link_aabbs(self, joint_positions: dict[str, float] | None = None) -> dict[str, tuple[Vector3, Vector3]]:
+        """Compute axis-aligned bounding boxes for every link."""
+
         poses = self.forward_kinematics(joint_positions)
         aabbs: dict[str, tuple[Vector3, Vector3]] = {}
         for name, link in self.links.items():
@@ -108,6 +126,8 @@ class RobotModel:
         return aabbs
 
     def joint_chain(self, target_link: str) -> list[JointSpec]:
+        """Return the ordered joint chain from the root to a target link."""
+
         chain: list[JointSpec] = []
         current_link = target_link
         while current_link != self.root_link:
@@ -120,12 +140,16 @@ class RobotModel:
         return chain
 
     def joint_chain_for_effector(self, effector: str) -> list[JointSpec]:
+        """Return the ordered joint chain that drives a named end effector."""
+
         return self.joint_chain(self.end_effectors[effector])
 
     def joint_frames(
         self,
         joint_positions: dict[str, float] | None = None,
     ) -> dict[str, tuple[Matrix, Matrix]]:
+        """Return origin and child frames for every joint in the current pose."""
+
         positions = self._merged_positions(joint_positions)
         frames: dict[str, tuple[Matrix, Matrix]] = {}
 

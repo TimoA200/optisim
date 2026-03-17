@@ -10,6 +10,8 @@ from optisim.robot.model import JointSpec, LinkSpec, RobotModel
 
 
 def load_urdf(path: str | Path) -> RobotModel:
+    """Load a URDF file into the internal ``RobotModel`` representation."""
+
     source = Path(path)
     root = ET.fromstring(source.read_text(encoding="utf-8"))
     if root.tag != "robot":

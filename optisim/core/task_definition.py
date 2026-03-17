@@ -24,6 +24,8 @@ class TaskDefinition:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the task definition into a plain Python mapping."""
+
         return {
             "name": self.name,
             "metadata": self.metadata,
@@ -33,6 +35,8 @@ class TaskDefinition:
         }
 
     def dump(self, path: str | Path) -> None:
+        """Write the task definition to JSON or YAML based on file extension."""
+
         destination = Path(path)
         payload = self.to_dict()
         if destination.suffix.lower() == ".json":
@@ -42,6 +46,8 @@ class TaskDefinition:
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "TaskDefinition":
+        """Create a task definition from an in-memory mapping payload."""
+
         actions = [ActionPrimitive.from_dict(item) for item in payload.get("actions", [])]
         return cls(
             name=payload["name"],
@@ -53,6 +59,8 @@ class TaskDefinition:
 
     @classmethod
     def from_file(cls, path: str | Path) -> "TaskDefinition":
+        """Load a task definition from a YAML or JSON file on disk."""
+
         source = Path(path)
         raw = source.read_text(encoding="utf-8")
         if source.suffix.lower() == ".json":
@@ -71,6 +79,8 @@ class TaskDefinition:
         world: dict[str, Any] | None = None,
         robot: dict[str, Any] | None = None,
     ) -> "TaskDefinition":
+        """Build a task definition from a fluent ``TaskComposer`` instance."""
+
         return cls(
             name=composer.name,
             actions=list(composer.actions),

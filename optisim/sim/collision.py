@@ -11,6 +11,8 @@ from optisim.sim.world import ObjectState, Surface
 
 @dataclass(slots=True)
 class Collision:
+    """Collision report between two named entities."""
+
     entity_a: str
     entity_b: str
     penetration_depth: float
@@ -19,6 +21,8 @@ class Collision:
 def intersect_aabb(
     a_min: np.ndarray, a_max: np.ndarray, b_min: np.ndarray, b_max: np.ndarray
 ) -> Collision | None:
+    """Return an overlap report for two axis-aligned bounding boxes."""
+
     overlaps = np.minimum(a_max, b_max) - np.maximum(a_min, b_min)
     if np.any(overlaps <= 0.0):
         return None
@@ -26,6 +30,8 @@ def intersect_aabb(
 
 
 def object_surface_collision(obj: ObjectState, surface: Surface) -> Collision | None:
+    """Check whether an object intersects a support surface AABB."""
+
     obj_min, obj_max = obj.aabb
     half = np.asarray(surface.size, dtype=np.float64) / 2.0
     surf_min = surface.pose.position - half

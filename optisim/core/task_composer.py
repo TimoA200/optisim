@@ -16,10 +16,14 @@ class TaskComposer:
     metadata: dict[str, str] = field(default_factory=dict)
 
     def append(self, action: ActionPrimitive) -> "TaskComposer":
+        """Append a single action and return the composer for fluent chaining."""
+
         self.actions.append(action)
         return self
 
     def extend(self, actions: list[ActionPrimitive]) -> "TaskComposer":
+        """Append multiple actions and return the composer for fluent chaining."""
+
         self.actions.extend(actions)
         return self
 
@@ -30,6 +34,8 @@ class TaskComposer:
         destination: tuple[float, float, float],
         support: str,
     ) -> "TaskComposer":
+        """Append a canonical pick-and-place action sequence."""
+
         return self.extend(
             [
                 ActionPrimitive.reach(target=target, end_effector=pickup_effector),

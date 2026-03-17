@@ -11,6 +11,8 @@ from optisim.math3d import Pose, Quaternion, vec3
 
 @dataclass(slots=True)
 class Surface:
+    """Static support surface available in the simulated world."""
+
     name: str
     pose: Pose
     size: tuple[float, float, float]
@@ -18,6 +20,8 @@ class Surface:
 
 @dataclass(slots=True)
 class ObjectState:
+    """Dynamic object state tracked by the simulator."""
+
     name: str
     pose: Pose
     size: tuple[float, float, float]
@@ -26,12 +30,16 @@ class ObjectState:
 
     @property
     def aabb(self) -> tuple[np.ndarray, np.ndarray]:
+        """Return the object's axis-aligned bounding box in world space."""
+
         half = np.asarray(self.size, dtype=np.float64) / 2.0
         return self.pose.position - half, self.pose.position + half
 
 
 @dataclass
 class WorldState:
+    """Container for simulated gravity, objects, surfaces, and simulation time."""
+
     gravity: np.ndarray = field(default_factory=lambda: vec3([0.0, 0.0, -9.81]))
     objects: dict[str, ObjectState] = field(default_factory=dict)
     surfaces: dict[str, Surface] = field(default_factory=dict)
@@ -39,6 +47,8 @@ class WorldState:
 
     @classmethod
     def with_defaults(cls) -> "WorldState":
+        """Create a small default world used by examples and tests."""
+
         table_pose = Pose(position=vec3([0.55, 0.0, 0.74]), orientation=Quaternion.identity())
         box_pose = Pose(position=vec3([0.42, -0.12, 0.81]), orientation=Quaternion.identity())
         return cls(
@@ -57,6 +67,8 @@ class WorldState:
 
     @classmethod
     def from_dict(cls, payload: dict) -> "WorldState":
+        """Construct a world state from a task-document mapping."""
+
         world = cls.with_defaults()
         if not payload:
             return world

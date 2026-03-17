@@ -15,6 +15,8 @@ QuaternionArray = NDArray[np.float64]
 
 
 def vec3(values: Iterable[float]) -> Vector:
+    """Convert an iterable into a strict 3D float vector."""
+
     array = np.asarray(list(values), dtype=np.float64)
     if array.shape != (3,):
         raise ValueError(f"expected 3-vector, received shape {array.shape}")
@@ -22,6 +24,8 @@ def vec3(values: Iterable[float]) -> Vector:
 
 
 def normalize(vector: Vector) -> Vector:
+    """Return a normalized copy of a vector, preserving zeros as zeros."""
+
     norm = np.linalg.norm(vector)
     if norm == 0.0:
         return vector.copy()
@@ -38,13 +42,19 @@ class Quaternion:
     z: float
 
     def as_np(self) -> QuaternionArray:
+        """Return the quaternion as a NumPy array in scalar-first order."""
+
         return np.asarray([self.w, self.x, self.y, self.z], dtype=np.float64)
 
     def normalized(self) -> "Quaternion":
+        """Return a unit-length quaternion."""
+
         q = normalize(self.as_np())
         return Quaternion(*q.tolist())
 
     def __mul__(self, other: "Quaternion") -> "Quaternion":
+        """Compose two quaternions and return the normalized product."""
+
         a = self.as_np()
         b = other.as_np()
         w1, x1, y1, z1 = a
@@ -58,10 +68,14 @@ class Quaternion:
 
     @staticmethod
     def identity() -> "Quaternion":
+        """Return the identity quaternion."""
+
         return Quaternion(1.0, 0.0, 0.0, 0.0)
 
     @staticmethod
     def from_euler(roll: float, pitch: float, yaw: float) -> "Quaternion":
+        """Construct a quaternion from roll, pitch, and yaw angles in radians."""
+
         cr = cos(roll * 0.5)
         sr = sin(roll * 0.5)
         cp = cos(pitch * 0.5)
@@ -76,6 +90,8 @@ class Quaternion:
         ).normalized()
 
     def to_rotation_matrix(self) -> Matrix:
+        """Convert the quaternion into a 3x3 rotation matrix."""
+
         w, x, y, z = self.normalized().as_np()
         return np.asarray(
             [
@@ -95,25 +111,35 @@ class Pose:
     orientation: Quaternion = Quaternion.identity()
 
     def matrix(self) -> Matrix:
+        """Return the homogeneous transform matrix for this pose."""
+
         out = np.eye(4, dtype=np.float64)
         out[:3, :3] = self.orientation.to_rotation_matrix()
         out[:3, 3] = self.position
         return out
 
     def transform_point(self, point: Iterable[float]) -> Vector:
+        """Transform a local-space point into world coordinates."""
+
         return self.position + self.orientation.to_rotation_matrix() @ vec3(point)
 
     def compose(self, other: "Pose") -> "Pose":
+        """Compose this pose with another pose and return the result."""
+
         rotation = self.orientation.to_rotation_matrix()
         position = self.position + rotation @ other.position
         return Pose(position=position, orientation=self.orientation * other.orientation)
 
     @staticmethod
     def identity() -> "Pose":
+        """Return the identity rigid transform."""
+
         return Pose(position=np.zeros(3, dtype=np.float64), orientation=Quaternion.identity())
 
     @staticmethod
     def from_xyz_rpy(xyz: Iterable[float], rpy: Iterable[float]) -> "Pose":
+        """Construct a pose from translation and roll-pitch-yaw angles."""
+
         roll, pitch, yaw = list(rpy)
         return Pose(position=vec3(xyz), orientation=Quaternion.from_euler(roll, pitch, yaw))
 
@@ -135,6 +161,8 @@ def dh_transform(a: float, alpha: float, d: float, theta: float) -> Matrix:
 
 
 def pose_from_matrix(matrix: Matrix) -> Pose:
+    """Convert a 4x4 homogeneous transform matrix into a ``Pose``."""
+
     position = matrix[:3, 3].astype(np.float64)
     m = matrix[:3, :3]
     trace = float(np.trace(m))

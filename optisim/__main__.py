@@ -1,3 +1,5 @@
+"""Module entry point for ``python -m optisim``."""
+
 from optisim.cli import main
 
 

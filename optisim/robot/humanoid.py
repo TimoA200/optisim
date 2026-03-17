@@ -34,6 +34,8 @@ class BuiltInHumanoid:
     spec: HumanoidSpec = field(default_factory=HumanoidSpec)
 
     def as_robot_model(self) -> RobotModel:
+        """Build the configured built-in humanoid as a ``RobotModel``."""
+
         spec = self.spec
         links: dict[str, LinkSpec] = {
             "pelvis": LinkSpec("pelvis", visual_extent=(0.28, 0.22, 0.16)),

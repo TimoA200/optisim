@@ -22,6 +22,8 @@ from optisim.sim.world import WorldState
 
 @dataclass
 class TerminalVisualizer:
+    """Rich-based terminal renderer for task execution progress."""
+
     width: int = 38
     height: int = 22
     console: Console = field(default_factory=Console)
@@ -35,6 +37,8 @@ class TerminalVisualizer:
     _previous_positions: dict[str, float] = field(default_factory=dict, init=False, repr=False)
 
     def start_task(self, task: TaskDefinition, world: WorldState, robot: RobotModel) -> None:
+        """Prepare live terminal rendering for a new task."""
+
         self._previous_positions = dict(robot.joint_positions)
         self._collision_names.clear()
         self._current_action = "initializing"
@@ -53,6 +57,8 @@ class TerminalVisualizer:
         self._live.start()
 
     def start_action(self, action: ActionPrimitive, *, index: int, total_actions: int) -> None:
+        """Update the active action label and progress bar state."""
+
         self._current_action = f"{action.action_type.value} {action.target}"
         self._action_index = index
         self._action_total = total_actions
@@ -60,11 +66,15 @@ class TerminalVisualizer:
             self._progress.update(self._progress_task_id, completed=index - 1)
 
     def update_collisions(self, collisions: list[Collision]) -> None:
+        """Track colliding entity names for highlighting."""
+
         self._collision_names = {collision.entity_a for collision in collisions} | {
             collision.entity_b for collision in collisions
         }
 
     def render(self, world: WorldState, robot: RobotModel) -> None:
+        """Render or refresh the current terminal visualization frame."""
+
         if self._live is None:
             self.console.print(self._render_layout(world, robot))
             return
@@ -78,6 +88,8 @@ class TerminalVisualizer:
         robot: RobotModel,
         collisions: list[Collision],
     ) -> None:
+        """Finalize the live session and render the terminal end state."""
+
         if self._progress is not None and self._progress_task_id is not None:
             self._progress.update(self._progress_task_id, completed=max(len(task.actions), 1))
         if self._live is not None:

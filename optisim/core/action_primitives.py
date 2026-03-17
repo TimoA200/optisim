@@ -10,6 +10,8 @@ from optisim.math3d import Pose, Quaternion, vec3
 
 
 class ActionType(StrEnum):
+    """Enumeration of built-in atomic manipulation action types."""
+
     REACH = "reach"
     GRASP = "grasp"
     MOVE = "move"
@@ -36,6 +38,8 @@ class ActionPrimitive:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the action into a task-file-friendly dictionary."""
+
         payload: dict[str, Any] = {
             "type": self.action_type.value,
             "target": self.target,
@@ -63,6 +67,8 @@ class ActionPrimitive:
 
     @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "ActionPrimitive":
+        """Build an action primitive from a serialized mapping payload."""
+
         pose = None
         if "pose" in payload:
             pose_data = payload["pose"]
@@ -89,10 +95,14 @@ class ActionPrimitive:
 
     @classmethod
     def reach(cls, target: str, end_effector: str, pose: Pose | None = None) -> "ActionPrimitive":
+        """Create a reach action for a target object or explicit pose."""
+
         return cls(action_type=ActionType.REACH, target=target, end_effector=end_effector, pose=pose)
 
     @classmethod
     def grasp(cls, target: str, gripper: str) -> "ActionPrimitive":
+        """Create a grasp action for the requested target and gripper."""
+
         return cls(action_type=ActionType.GRASP, target=target, end_effector=gripper)
 
     @classmethod
@@ -102,6 +112,8 @@ class ActionPrimitive:
         destination: list[float] | tuple[float, float, float],
         end_effector: str = "right_palm",
     ) -> "ActionPrimitive":
+        """Create a move action that transports a grasped target to a destination."""
+
         return cls(
             action_type=ActionType.MOVE,
             target=target,
@@ -111,6 +123,8 @@ class ActionPrimitive:
 
     @classmethod
     def place(cls, target: str, support: str, end_effector: str = "right_palm") -> "ActionPrimitive":
+        """Create a place action that releases a held object onto a support surface."""
+
         return cls(action_type=ActionType.PLACE, target=target, end_effector=end_effector, support=support)
 
     @classmethod
@@ -121,6 +135,8 @@ class ActionPrimitive:
         force_newtons: float,
         end_effector: str = "right_palm",
     ) -> "ActionPrimitive":
+        """Create a push action with a direction vector and nominal force."""
+
         return cls(
             action_type=ActionType.PUSH,
             target=target,
@@ -137,6 +153,8 @@ class ActionPrimitive:
         force_newtons: float,
         end_effector: str = "right_palm",
     ) -> "ActionPrimitive":
+        """Create a pull action with a direction vector and nominal force."""
+
         return cls(
             action_type=ActionType.PULL,
             target=target,
@@ -153,6 +171,8 @@ class ActionPrimitive:
         angle_rad: float,
         end_effector: str = "right_palm",
     ) -> "ActionPrimitive":
+        """Create a rotate action about the supplied axis and angle."""
+
         return cls(
             action_type=ActionType.ROTATE,
             target=target,

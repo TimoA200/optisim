@@ -10,10 +10,14 @@ from optisim.sim.world import WorldState
 
 @dataclass
 class MatplotlibVisualizer:
+    """Minimal matplotlib renderer for 2D top-down state inspection."""
+
     figure: object | None = field(default=None, init=False)
     axes: object | None = field(default=None, init=False)
 
     def render(self, world: WorldState, robot: RobotModel) -> None:
+        """Render the world, objects, and end effectors with matplotlib."""
+
         try:
             import matplotlib.pyplot as plt
         except ImportError as exc:

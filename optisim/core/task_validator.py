@@ -12,6 +12,8 @@ from optisim.core.task_definition import TaskDefinition
 
 @dataclass(slots=True)
 class ValidationIssue:
+    """Single validation message emitted for a task or action."""
+
     message: str
     action_index: int | None = None
     severity: str = "error"
@@ -19,14 +21,20 @@ class ValidationIssue:
 
 @dataclass(slots=True)
 class ValidationReport:
+    """Validation result containing error and warning collections."""
+
     errors: list[ValidationIssue] = field(default_factory=list)
     warnings: list[ValidationIssue] = field(default_factory=list)
 
     @property
     def is_valid(self) -> bool:
+        """Return ``True`` when no validation errors were recorded."""
+
         return not self.errors
 
     def summary(self) -> str:
+        """Return a compact human-readable validation summary string."""
+
         if self.is_valid:
             return f"valid ({len(self.warnings)} warnings)"
         return f"invalid ({len(self.errors)} errors, {len(self.warnings)} warnings)"
@@ -36,6 +44,8 @@ class TaskValidator:
     """Checks task semantics against world and robot capabilities."""
 
     def validate(self, task: TaskDefinition, world: "WorldState", robot: "RobotModel") -> ValidationReport:
+        """Validate a task against the supplied world state and robot model."""
+
         report = ValidationReport()
         carried_object: str | None = None
         max_reach = robot.max_reach()
@@ -106,6 +116,8 @@ class TaskValidator:
 
     @staticmethod
     def _validate_action_shape(action: ActionPrimitive, index: int, report: ValidationReport) -> None:
+        """Validate per-action required fields and scalar constraints."""
+
         if action.speed <= 0.0:
             report.errors.append(ValidationIssue("action speed must be positive", action_index=index))
         if action.action_type is ActionType.MOVE and action.destination is None:

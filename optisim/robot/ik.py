@@ -102,10 +102,14 @@ def solve_inverse_kinematics(
 
 
 def _extract_positions(positions: dict[str, float], joint_names: list[str]) -> dict[str, float]:
+    """Return a filtered joint-position mapping for the active IK joints."""
+
     return {name: positions[name] for name in joint_names}
 
 
 def _pose_error(current: Pose, target: Pose, options: IKOptions) -> Vector:
+    """Compute the task-space error vector for the current IK iteration."""
+
     position_error = target.position - current.position
     if options.position_only:
         return position_error.astype(np.float64)
@@ -120,6 +124,8 @@ def _pose_error(current: Pose, target: Pose, options: IKOptions) -> Vector:
 
 
 def _orientation_error(current_rotation: Matrix, target_rotation: Matrix) -> Vector:
+    """Approximate rotational error as a world-frame rotation vector."""
+
     # SO(3) error expressed as a world-frame rotation vector approximation.
     return 0.5 * (
         np.cross(current_rotation[:, 0], target_rotation[:, 0])
@@ -136,6 +142,8 @@ def _numerical_jacobian(
     position_only: bool,
     epsilon: float = 1e-4,
 ) -> Matrix:
+    """Estimate the task Jacobian with forward finite differences."""
+
     rows = 3 if position_only else 6
     jacobian = np.zeros((rows, len(joint_names)), dtype=np.float64)
     base_pose = robot.end_effector_pose(effector, positions)

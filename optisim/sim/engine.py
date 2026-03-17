@@ -18,6 +18,8 @@ from optisim.sim.world import WorldState
 
 @dataclass(slots=True)
 class SimulationRecord:
+    """Summary of a completed simulation run."""
+
     steps: int
     duration_s: float
     executed_actions: list[str] = field(default_factory=list)
@@ -26,18 +28,26 @@ class SimulationRecord:
 
 @dataclass
 class ExecutionEngine:
+    """Deterministic task execution engine coupling robot and world state."""
+
     robot: RobotModel = field(default_factory=build_humanoid_model)
     world: WorldState = field(default_factory=WorldState.with_defaults)
     dt: float = 0.05
 
     def __post_init__(self) -> None:
+        """Create helper subsystems after engine construction."""
+
         self.controller = JointController(self.robot)
         self.validator = TaskValidator()
 
     def validate(self, task: TaskDefinition) -> ValidationReport:
+        """Validate a task against the engine's current robot and world."""
+
         return self.validator.validate(task=task, world=self.world, robot=self.robot)
 
     def run(self, task: TaskDefinition, visualize: "Visualizer | None" = None) -> SimulationRecord:
+        """Execute a validated task and return a simulation record."""
+
         report = self.validate(task)
         if not report.is_valid:
             details = "; ".join(issue.message for issue in report.errors)
@@ -71,6 +81,8 @@ class ExecutionEngine:
         )
 
     def step(self, visualize: "Visualizer | None" = None) -> None:
+        """Advance simulated time by one fixed step and refresh visualization."""
+
         self.world.time_s += self.dt
         if visualize is not None:
             visualize.render(self.world, self.robot)
@@ -171,16 +183,26 @@ class ExecutionEngine:
 
 
 class Visualizer:
+    """Protocol-like visualization interface used by the execution engine."""
+
     def start_task(self, task: TaskDefinition, world: WorldState, robot: RobotModel) -> None:
+        """Initialize visualization state for a new task."""
+
         return None
 
     def start_action(self, action: ActionPrimitive, *, index: int, total_actions: int) -> None:
+        """Notify the visualizer that a new action is starting."""
+
         return None
 
     def update_collisions(self, collisions: list[Collision]) -> None:
+        """Provide the visualizer with the latest collision reports."""
+
         return None
 
     def render(self, world: WorldState, robot: RobotModel) -> None:
+        """Render the current world and robot state."""
+
         raise NotImplementedError
 
     def finish(
@@ -190,4 +212,6 @@ class Visualizer:
         robot: RobotModel,
         collisions: list[Collision],
     ) -> None:
+        """Finalize visualization after task completion."""
+
         return None

@@ -16,6 +16,8 @@ class JointController:
     robot: RobotModel
 
     def step_towards(self, targets: dict[str, float], dt: float) -> dict[str, float]:
+        """Advance joint positions toward targets subject to per-joint velocity limits."""
+
         updated = dict(self.robot.joint_positions)
         for joint_name, target in targets.items():
             spec = self.robot.joints[joint_name]
