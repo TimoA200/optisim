@@ -36,6 +36,7 @@ from optisim.grasp import (
 )
 from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
+from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.reactive import (
     ContactPhase,
@@ -133,6 +134,11 @@ __all__ = [
     "RobotFleet",
     "TaskAssignment",
     "TaskCoordinator",
+    "MPCConfig",
+    "MPCSolution",
+    "HumanoidMPC",
+    "FootstepPlanner",
+    "build_humanoid_mpc",
     "ValidationReport",
     "MotionPlanner",
     "PlanningResult",
@@ -184,4 +190,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.4.0"

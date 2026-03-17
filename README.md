@@ -23,9 +23,13 @@
 - ✅ `optisim.sim`: deterministic step-based execution engine, world state management, and recording/replay
 - ✅ `optisim.viz`: terminal-first visualization plus optional matplotlib inspection
 - ✅ `optisim.planning`: RRT and RRT-Connect motion planning with path smoothing
+- ✅ `optisim.trajopt`: trajectory optimization with cubic splines, timing optimization, and motion-profile outputs
 - ✅ `optisim.behavior`: behavior tree execution with YAML loading for structured task logic
 - ✅ `optisim.dynamics`: rigid-body dynamics, energy analysis, and joint/payload/workspace constraints
 - ✅ `optisim.grasp`: contact-based grasp planning, force-closure checks, friction-cone checks, and gripper presets
+- ✅ `optisim.wbc`: whole-body control with hierarchical null-space task stacking and damped least-squares solves
+- ✅ `optisim.reactive`: reactive manipulation control with contact-phase FSMs and sensor-driven velocity scaling
+- ✅ `optisim.mpc`: linear inverted-pendulum MPC for CoM balance, ZMP regulation, and simple humanoid footstep planning
 - ✅ `optisim.multi`: shared-world multi-robot fleet coordination with dependency-aware task scheduling
 - ✅ `optisim.library`: 12 built-in humanoid task templates for rapid scenario bootstrapping
 - ✅ `optisim.analytics`: trajectory metrics, run comparison, and profiling helpers
@@ -42,9 +46,47 @@ source .venv/bin/activate && pip install -e .
 python -m optisim run examples/stack_blocks.yaml --visualize
 python -m optisim multi examples/multi_robot_warehouse.yaml
 python -m optisim sim examples/pick_and_place.yaml --web
+python examples/mpc_balance.py
 ```
 
 3D web visualizer demo: run `optisim sim examples/pick_and_place.yaml --web`
+
+Whole-body control example:
+
+```python
+from optisim.robot import build_humanoid_model
+from optisim.wbc import BalanceTask, JointLimitTask, PostureTask, build_wbc_controller
+
+robot = build_humanoid_model()
+controller = build_wbc_controller(
+    [
+        BalanceTask(priority=0),
+        PostureTask({"torso_yaw": 0.1, "left_shoulder_pitch": -0.25}, priority=1),
+        JointLimitTask(priority=2),
+    ]
+)
+
+result = controller.solve(robot, dt=0.05, max_iterations=40, tolerance=1e-3)
+
+print(result.converged, result.iterations)
+print(result.task_errors)
+```
+
+MPC balance example:
+
+```python
+from optisim.mpc import FootstepPlanner, build_humanoid_mpc
+
+controller = build_humanoid_mpc()
+planner = FootstepPlanner()
+plan = planner.plan_walk(direction=[1.0, 0.0, 0.0], steps=4)
+
+state = [0.0, 0.0, 0.0, 0.0, controller.config.com_height_z]
+solution = controller.step(state, target_position=[0.05, 0.0], footstep_plan=plan)
+
+print(solution.optimal_states[:3])
+print(solution.optimal_inputs[:3])
+```
 
 ## Architecture
 
@@ -75,15 +117,22 @@ python -m optisim sim examples/pick_and_place.yaml --web
       +------------------------+-------------------------+
       |                        |                         |
       v                        v                         v
- +------------------+  +----------------------+  +----------------------+
- | optisim.robot    |  | optisim.planning     |  | optisim.grasp        |
- | humanoid / URDF  |  | RRT / RRT-Connect    |  | contacts / closure   |
- | Jacobian IK      |  | smoothing            |  | friction / grippers  |
- +---------+--------+  +----------+-----------+  +----------+-----------+
-           |                      |                         |
-           +-----------+----------+-------------------------+
+ +------------------+  +----------------------+  +----------------------+  +----------------------+
+ | optisim.robot    |  | optisim.planning     |  | optisim.trajopt      |  | optisim.grasp        |
+ | humanoid / URDF  |  | RRT / RRT-Connect    |  | cubic splines /      |  | contacts / closure   |
+ | Jacobian IK      |  | smoothing            |  | timing / profiles    |  | friction / grippers  |
+ +---------+--------+  +----------+-----------+  +----------+-----------+  +----------+-----------+
+           |                      |                         |                         |
+           +-----------+----------+-------------------------+-------------------------+
                        |
                        v
+               +----------------------+
+               | optisim.wbc          |
+               | task stacking /      |
+               | null-space / DLS     |
+               +---+------------------+
+                   |
+                   v
                +----------------------+
                | optisim.sim          |
                | engine / world / log |
@@ -104,7 +153,9 @@ python -m optisim sim examples/pick_and_place.yaml --web
                                  |
                                  v
                         +----------------------+
-                        | validated execution  |
+                        | optisim.reactive     |
+                        | contact FSM /        |
+                        | sensor scaling       |
                         +---+-------------+-------------+------+
                             |             |             |
              +--------------+             |             +------------------+

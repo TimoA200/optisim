@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.4.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.mpc`: linear inverted-pendulum MPC for humanoid CoM balance and locomotion.
+- Added `FootstepPlanner` and `FootstepPlan` helpers for simple alternating humanoid walking patterns.
+- Added a bundled `examples/mpc_balance.py` example and MPC-focused pytest coverage.
+
+## [0.3.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.wbc`: whole-body control with hierarchical null-space task stacking.
+- Added `optisim.trajopt`: trajectory optimization with cubic splines and velocity/acceleration profiles.
+- Added `optisim.reactive`: reactive manipulation controller with contact-phase FSM and sensor-driven velocity scaling.
+
+### Changed
+
+- Test count updated to 347 passing.
+
 ## [0.2.0] - 2026-03-17
 
 ### Added
