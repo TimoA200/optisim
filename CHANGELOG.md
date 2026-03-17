@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.6.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.tamp`: lightweight task and motion planning utilities with symbolic predicates, PDDL-style operators, BFS planning, geometric feasibility checks, and a bundled household manipulation domain.
+- Added `TAMPPlanner` and `TAMPPlan` for integrating symbolic search with simple geometric backtracking over candidate plans.
+- Added `examples/tamp_demo.py` demonstrating a household cup transfer from table to counter.
+- Added pytest coverage for symbolic planning, geometric validation, household-domain operator integrity, and end-to-end TAMP planning.
+
 ## [0.5.0] - 2026-03-17
 
 ### Added

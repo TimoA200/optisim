@@ -85,6 +85,16 @@ from optisim.safety import (
     ZoneType,
 )
 from optisim.sim import ExecutionEngine, WorldState
+from optisim.tamp import (
+    GeometricChecker,
+    HouseholdDomain,
+    Operator,
+    PlanningState,
+    Predicate,
+    SymbolicPlanner,
+    TAMPPlan,
+    TAMPPlanner,
+)
 from optisim.trajopt import TrajOptConfig, TrajOptResult, TrajectoryOptimizer, optimize_path
 from optisim.wbc import (
     BalanceTask,
@@ -205,6 +215,14 @@ __all__ = [
     "ZoneType",
     "ExecutionEngine",
     "WorldState",
+    "Predicate",
+    "Operator",
+    "PlanningState",
+    "SymbolicPlanner",
+    "GeometricChecker",
+    "TAMPPlan",
+    "TAMPPlanner",
+    "HouseholdDomain",
     "TrajOptConfig",
     "TrajOptResult",
     "TrajectoryOptimizer",
