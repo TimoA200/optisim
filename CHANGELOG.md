@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.23.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.pathplan`: `GridNode`, `AStarPlanner`, `WaypointSmoother`, and `RoadmapPlanner`.
+- Added voxel-grid A* planning, greedy line-of-sight waypoint pruning, and 3D probabilistic-roadmap planning against `VoxelGrid` occupancy maps.
+- Added pytest coverage for path reconstruction, heuristic behavior, line-of-sight edge cases, roadmap building, package exports, and version metadata.
+
 ## [0.22.0] - 2026-03-17
 
 ### Added
