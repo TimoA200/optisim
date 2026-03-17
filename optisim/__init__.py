@@ -3,6 +3,7 @@
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
+from optisim.bimanual import BimanualCoordinator, BimanualTask, CooperativeManipulation, TaskPresets
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
 from optisim.dynamics import (
     ConstraintSet,
@@ -99,6 +100,10 @@ __all__ = [
     "BTStatus",
     "BehaviorTreeBuilder",
     "BehaviorTreeExecutor",
+    "BimanualCoordinator",
+    "BimanualTask",
+    "CooperativeManipulation",
+    "TaskPresets",
     "ActionPrimitive",
     "TaskComposer",
     "TaskDefinition",

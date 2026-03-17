@@ -13,6 +13,7 @@ The format is based on Keep a Changelog and this project adheres to Semantic Ver
 - Added `optisim.estimation`: EKF-based humanoid state estimation with IMU, encoder, contact, and vision updates.
 - Added `StateEstimationPipeline`, `RobotState`, and an IMU dead-reckoning utility plus a bundled estimation demo.
 - Added a bundled `examples/mpc_balance.py` example and MPC-focused pytest coverage.
+- Added `optisim.bimanual`: coordinated dual-arm task planning, cooperative wrench sharing, and common bimanual task presets.
 
 ## [0.3.0] - 2026-03-17
 
