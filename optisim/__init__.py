@@ -4,6 +4,7 @@ The FastAPI server lives in ``optisim.server`` and is intentionally not imported
 here so importing ``optisim`` does not pull in optional web dependencies.
 """
 
+from . import scene as scene
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
@@ -90,6 +91,7 @@ from optisim.scenario import (
     ScenarioStepResult,
     SensorReading,
 )
+from optisim.scene import SceneBuilder, SceneGraph, SceneNode, SceneQuery, SceneRelation
 from optisim.sensors import (
     DepthCameraSensor,
     ForceTorqueSensor,
@@ -239,6 +241,12 @@ __all__ = [
     "ScenarioRunner",
     "ScenarioStepResult",
     "SensorReading",
+    "scene",
+    "SceneNode",
+    "SceneRelation",
+    "SceneGraph",
+    "SceneBuilder",
+    "SceneQuery",
     "DepthCameraSensor",
     "ForceTorqueSensor",
     "IMUSensor",
@@ -277,4 +285,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
