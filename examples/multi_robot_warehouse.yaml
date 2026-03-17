@@ -1,0 +1,55 @@
+name: warehouse_sorting_pair
+world:
+  objects:
+    - name: parcel_red
+      pose:
+        position: [0.45, -0.18, 0.82]
+      size: [0.08, 0.08, 0.12]
+    - name: parcel_blue
+      pose:
+        position: [0.45, 0.18, 0.82]
+      size: [0.08, 0.08, 0.12]
+  surfaces:
+    - name: outbound_left
+      pose:
+        position: [0.9, -0.18, 0.74]
+      size: [0.4, 0.35, 0.05]
+    - name: outbound_right
+      pose:
+        position: [0.9, 0.18, 0.74]
+      size: [0.4, 0.35, 0.05]
+robots:
+  - name: sorter_left
+    base_offset: [0.0, -0.8, 0.0]
+  - name: sorter_right
+    base_offset: [0.0, 0.8, 0.0]
+assignments:
+  - robot_name: sorter_left
+    task:
+      name: sort_red_parcel
+      actions:
+        - type: grasp
+          target: parcel_red
+        - type: move
+          target: parcel_red
+          destination: [0.95, -0.18, 0.9]
+          speed: 1.0
+        - type: place
+          target: parcel_red
+          support: outbound_left
+  - robot_name: sorter_right
+    dependencies:
+      - robot_name: sorter_left
+        action_index: 0
+    task:
+      name: sort_blue_parcel
+      actions:
+        - type: grasp
+          target: parcel_blue
+        - type: move
+          target: parcel_blue
+          destination: [0.95, 0.18, 0.9]
+          speed: 1.0
+        - type: place
+          target: parcel_blue
+          support: outbound_right

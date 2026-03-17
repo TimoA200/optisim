@@ -35,6 +35,7 @@ class ExecutionEngine:
     robot: RobotModel = field(default_factory=build_humanoid_model)
     world: WorldState = field(default_factory=WorldState.with_defaults)
     dt: float = 0.05
+    holder_prefix: str | None = None
 
     def __post_init__(self) -> None:
         """Create helper subsystems after engine construction."""
@@ -128,7 +129,7 @@ class ExecutionEngine:
         if action.action_type is ActionType.REACH:
             return self._reach(action, visualize, recording, active_action)
         if action.action_type is ActionType.GRASP:
-            self.world.objects[action.target].held_by = action.end_effector
+            self.world.objects[action.target].held_by = self._held_by_name(action.end_effector)
             return 1
         if action.action_type is ActionType.MOVE:
             return self._move_object(action, visualize, recording, active_action)
@@ -181,6 +182,11 @@ class ExecutionEngine:
         obj = self.world.objects[action.target]
         if obj.held_by is None:
             raise ValueError(f"cannot move '{action.target}' because it is not grasped")
+        if obj.held_by != self._held_by_name(action.end_effector):
+            raise ValueError(
+                f"cannot move '{action.target}' because it is held by '{obj.held_by}',"
+                f" not '{self._held_by_name(action.end_effector)}'"
+            )
         destination = vec3(action.destination or obj.pose.position)
         start = obj.pose.position.copy()
         distance = float(np.linalg.norm(destination - start))
@@ -267,6 +273,14 @@ class ExecutionEngine:
                 if collision is not None and obj.held_by is None:
                     collisions.append(collision)
         return collisions
+
+    def _held_by_name(self, end_effector: str) -> str:
+        """Resolve the runtime holder identifier for an end effector."""
+
+        canonical_effector = self.robot.end_effectors.get(end_effector, end_effector)
+        if self.holder_prefix:
+            return f"{self.holder_prefix}:{canonical_effector}"
+        return canonical_effector
 
 
 class Visualizer:

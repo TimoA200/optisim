@@ -13,6 +13,7 @@ from optisim.analytics import ParameterRange, analyze_trajectory, composite_scor
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
 from optisim.library import TaskCatalog
+from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
@@ -109,6 +110,9 @@ def build_parser() -> argparse.ArgumentParser:
     gym_parser.add_argument("--backend", choices=("terminal", "web"), default="terminal")
     gym_parser.add_argument("--recording-dir", type=Path, help="directory for optional episode recordings")
 
+    multi_parser = subparsers.add_parser("multi", help="run a multi-robot coordination scenario")
+    multi_parser.add_argument("scenario_file", nargs="?", type=Path, default=Path("examples/multi_robot_warehouse.yaml"))
+
     return parser
 
 
@@ -148,6 +152,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "gym":
         return _run_gym_demo(args)
+
+    if args.command == "multi":
+        return _run_multi(args)
 
     task = TaskDefinition.from_file(args.task_file)
     return _execute_task_definition(task, args)
@@ -485,3 +492,52 @@ def _run_behavior_tree(args: argparse.Namespace) -> int:
     finally:
         if isinstance(visualizer, WebVisualizer):
             visualizer.close()
+
+
+def _run_multi(args: argparse.Namespace) -> int:
+    payload = yaml.safe_load(args.scenario_file.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"scenario file {args.scenario_file} does not contain a mapping")
+
+    fleet = RobotFleet.from_dict(
+        {
+            "world": payload.get("world", {}),
+            "robots": payload.get("robots", []),
+        }
+    )
+    assignments = [
+        TaskAssignment(
+            robot_name=str(item["robot_name"]),
+            task=TaskDefinition.from_dict(
+                {
+                    "name": item.get("task", {}).get("name", f"{item['robot_name']}_task"),
+                    "actions": item.get("task", {}).get("actions", []),
+                }
+            ),
+            dependencies=[
+                Dependency(robot_name=str(dep["robot_name"]), action_index=int(dep["action_index"]))
+                for dep in item.get("dependencies", [])
+            ],
+        )
+        for item in payload.get("assignments", [])
+    ]
+    coordinator = TaskCoordinator(fleet, assignments)
+    record = coordinator.execute()
+
+    print(
+        f"completed multi-robot scenario '{payload.get('name', args.scenario_file.stem)}' "
+        f"in {record.duration_s:.2f}s over {record.steps} steps"
+    )
+    for robot_name, trace in record.traces.items():
+        print(
+            f"  {robot_name}: actions={trace.executed_actions} "
+            f"completed={trace.completed_action_count}"
+        )
+    if record.collisions:
+        print("inter-robot collisions:")
+        for collision in record.collisions[:10]:
+            print(
+                f"  {collision.robot_a}.{collision.link_a} vs "
+                f"{collision.robot_b}.{collision.link_b} distance={collision.distance:.3f}m"
+            )
+    return 0

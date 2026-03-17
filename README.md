@@ -20,6 +20,7 @@
 - ✅ Deterministic step-based execution for reproducible task development
 - ✅ YAML and Python task authoring paths for fast iteration
 - ✅ Lightweight world modeling with objects, surfaces, and coarse collision checks
+- ✅ Multi-robot fleet coordination with shared-world task execution and inter-robot collision checks
 - ✅ RRT and RRT-Connect collision-aware motion planning with path smoothing
 - ✅ Rich terminal visualization that works locally, over SSH, and in CI logs
 - ✅ Optional matplotlib backend for quick spatial inspection
@@ -33,6 +34,7 @@
 python -m venv .venv
 source .venv/bin/activate && pip install -e .
 python -m optisim run examples/stack_blocks.yaml --visualize
+python -m optisim multi examples/multi_robot_warehouse.yaml
 ```
 
 ## Architecture
@@ -76,6 +78,7 @@ See [examples/README.md](/root/.openclaw/workspace/optisim/examples/README.md) f
 - `pour_water`: manipulate a pitcher and perform a tilt-style pouring sequence
 - `open_door`: reach, rotate, and pull a door interaction target
 - `stack_blocks`: chain multiple object transfers into a simple assembly task
+- `multi_robot_warehouse`: two humanoids sort warehouse parcels with dependency-aware fleet coordination
 
 ## Task Library
 
