@@ -3,6 +3,7 @@
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
+from optisim.library import TaskCatalog
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
 from optisim.sim import ExecutionEngine, WorldState
@@ -17,6 +18,7 @@ __all__ = [
     "ActionPrimitive",
     "TaskComposer",
     "TaskDefinition",
+    "TaskCatalog",
     "ValidationReport",
     "MotionPlanner",
     "PlanningResult",

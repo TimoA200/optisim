@@ -77,6 +77,31 @@ See [examples/README.md](/root/.openclaw/workspace/optisim/examples/README.md) f
 - `open_door`: reach, rotate, and pull a door interaction target
 - `stack_blocks`: chain multiple object transfers into a simple assembly task
 
+## Task Library
+
+`optisim` now includes a built-in task library so you can start from realistic humanoid manipulation templates instead of authoring YAML from scratch.
+
+```bash
+python -m optisim library list
+python -m optisim library run pick_and_place --param object=mug --param surface=shelf --visualize
+python -m optisim library export multi_room_delivery --output task.yaml
+```
+
+| Template | Difficulty |
+| --- | --- |
+| `pick_and_place` | beginner |
+| `table_clearing` | beginner |
+| `dish_loading` | beginner |
+| `laundry_folding` | intermediate |
+| `shelf_stocking` | intermediate |
+| `drawer_open_close` | intermediate |
+| `assembly_line_pick` | beginner |
+| `pallet_stacking` | intermediate |
+| `bin_sorting` | beginner |
+| `tool_handover` | intermediate |
+| `walk_and_pickup` | intermediate |
+| `multi_room_delivery` | advanced |
+
 ## Development
 
 ```bash

@@ -69,9 +69,9 @@ class WorldState:
     def from_dict(cls, payload: dict) -> "WorldState":
         """Construct a world state from a task-document mapping."""
 
-        world = cls.with_defaults()
         if not payload:
-            return world
+            return cls.with_defaults()
+        world = cls()
         if "gravity" in payload:
             world.gravity = vec3(payload["gravity"])
         for surface in payload.get("surfaces", []):

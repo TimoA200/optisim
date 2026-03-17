@@ -12,6 +12,7 @@ from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
+from optisim.library import TaskCatalog
 from optisim.planning import MotionPlanner
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
@@ -78,6 +79,28 @@ def build_parser() -> argparse.ArgumentParser:
     bt_validate_parser = bt_subparsers.add_parser("validate", help="validate a behavior tree file")
     bt_validate_parser.add_argument("tree_file", type=Path)
 
+    library_parser = subparsers.add_parser("library", help="inspect and run built-in task templates")
+    library_subparsers = library_parser.add_subparsers(dest="library_command", required=True)
+
+    library_list_parser = library_subparsers.add_parser("list", help="list available task templates")
+    library_list_parser.add_argument("--search", help="filter templates by keyword")
+
+    library_info_parser = library_subparsers.add_parser("info", help="show details for a task template")
+    library_info_parser.add_argument("name")
+
+    library_run_parser = library_subparsers.add_parser("run", help="run a task template directly")
+    library_run_parser.add_argument("name")
+    library_run_parser.add_argument("--param", action="append", default=[], metavar="KEY=VALUE")
+    library_run_parser.add_argument("--visualize", action="store_true")
+    library_run_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
+    library_run_parser.add_argument("--web", action="store_true", help="launch the web visualizer")
+    library_run_parser.add_argument("--recording-out", type=Path, help="export a JSON simulation recording")
+
+    library_export_parser = library_subparsers.add_parser("export", help="export a task template to YAML or JSON")
+    library_export_parser.add_argument("name")
+    library_export_parser.add_argument("--param", action="append", default=[], metavar="KEY=VALUE")
+    library_export_parser.add_argument("--output", type=Path, required=True)
+
     return parser
 
 
@@ -112,32 +135,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "bt":
         return _run_behavior_tree(args)
 
-    task = TaskDefinition.from_file(args.task_file)
-    world = WorldState.from_dict(task.world)
-    robot = _load_robot(task.robot)
-    engine = ExecutionEngine(robot=robot, world=world)
-    visualizer = _build_visualizer(args)
+    if args.command == "library":
+        return _run_library(args)
 
-    try:
-        record = engine.run(task, visualize=visualizer)
-        if args.recording_out and record.recording is not None:
-            record.recording.dump(args.recording_out)
-            print(f"recording saved to {args.recording_out}")
-        print(
-            f"completed '{task.name}' in {record.duration_s:.2f}s over {record.steps} steps; "
-            f"actions={record.executed_actions}"
-        )
-        if record.collisions:
-            print("collisions:")
-            for collision in record.collisions:
-                print(f"  {collision.entity_a} vs {collision.entity_b} depth={collision.penetration_depth:.3f}m")
-        if args.web and isinstance(visualizer, WebVisualizer):
-            print(f"web visualizer available at {visualizer.url} (Ctrl+C to exit)")
-            visualizer.block()
-        return 0
-    finally:
-        if isinstance(visualizer, WebVisualizer):
-            visualizer.close()
+    task = TaskDefinition.from_file(args.task_file)
+    return _execute_task_definition(task, args)
 
 
 def _load_robot(payload: dict) -> RobotModel:
@@ -158,6 +160,37 @@ def _build_visualizer(args: argparse.Namespace):
     if getattr(args, "visualize", False) or getattr(args, "command", None) == "replay":
         return TerminalVisualizer() if args.backend == "terminal" else MatplotlibVisualizer()
     return None
+
+
+def _execute_task_definition(task: TaskDefinition, args: argparse.Namespace) -> int:
+    """Run a task definition through the execution engine and CLI presentation layer."""
+
+    world = WorldState.from_dict(task.world)
+    robot = _load_robot(task.robot)
+    engine = ExecutionEngine(robot=robot, world=world)
+    visualizer = _build_visualizer(args)
+
+    try:
+        record = engine.run(task, visualize=visualizer)
+        recording_out = getattr(args, "recording_out", None)
+        if recording_out and record.recording is not None:
+            record.recording.dump(recording_out)
+            print(f"recording saved to {recording_out}")
+        print(
+            f"completed '{task.name}' in {record.duration_s:.2f}s over {record.steps} steps; "
+            f"actions={record.executed_actions}"
+        )
+        if record.collisions:
+            print("collisions:")
+            for collision in record.collisions:
+                print(f"  {collision.entity_a} vs {collision.entity_b} depth={collision.penetration_depth:.3f}m")
+        if getattr(args, "web", False) and isinstance(visualizer, WebVisualizer):
+            print(f"web visualizer available at {visualizer.url} (Ctrl+C to exit)")
+            visualizer.block()
+        return 0
+    finally:
+        if isinstance(visualizer, WebVisualizer):
+            visualizer.close()
 
 
 def _run_replay(args: argparse.Namespace) -> int:
@@ -327,6 +360,54 @@ def _parse_cli_value(token: str) -> float | list[float]:
     if isinstance(payload, list):
         return [float(item) for item in payload]
     return float(payload)
+
+
+def _parse_template_params(entries: list[str]) -> dict[str, Any]:
+    """Parse repeated ``KEY=VALUE`` CLI template parameter assignments."""
+
+    parameters: dict[str, Any] = {}
+    for entry in entries:
+        if "=" not in entry:
+            raise ValueError(f"invalid template parameter '{entry}': expected KEY=VALUE")
+        key, raw_value = entry.split("=", maxsplit=1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"invalid template parameter '{entry}': empty key")
+        parameters[key] = yaml.safe_load(raw_value.strip())
+    return parameters
+
+
+def _run_library(args: argparse.Namespace) -> int:
+    """Handle task library discovery, export, and execution commands."""
+
+    catalog = TaskCatalog()
+    if args.library_command == "list":
+        templates = catalog.search(args.search) if args.search else catalog.list()
+        for template in templates:
+            print(f"{template.name:20} {template.difficulty.value:12} {template.description}")
+        return 0
+
+    if args.library_command == "info":
+        template = catalog.info(args.name)
+        print(f"name: {template.name}")
+        print(f"difficulty: {template.difficulty.value}")
+        print(f"tags: {', '.join(template.tags)}")
+        print(f"description: {template.description}")
+        if template.parameters:
+            print("parameters:")
+            for parameter in template.parameters:
+                print(f"  {parameter.name}={parameter.default!r}  {parameter.description}")
+        return 0
+
+    parameters = _parse_template_params(args.param)
+    task = catalog.get(args.name, **parameters)
+    if args.library_command == "export":
+        task.dump(args.output)
+        print(f"exported '{args.name}' to {args.output}")
+        return 0
+    if args.library_command == "run":
+        return _execute_task_definition(task, args)
+    raise ValueError(f"unsupported library command '{args.library_command}'")
 
 
 def _run_behavior_tree(args: argparse.Namespace) -> int:
