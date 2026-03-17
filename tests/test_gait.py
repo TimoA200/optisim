@@ -288,4 +288,4 @@ def test_package_version_matches_gait_release() -> None:
     assert optisim.gait is gait
     assert public_gait_module is gait
     assert is_dataclass(LegCycle)
-    assert optisim.__version__ == "0.26.0"
+    assert optisim.__version__ == "0.27.0"

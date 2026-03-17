@@ -13,6 +13,7 @@ from . import curriculum as curriculum
 from . import dexterous as dexterous
 from . import energy as energy
 from . import export as export
+from . import faultdetect as faultdetect
 from . import footstep as footstep
 from . import gait as gait
 from . import language as language
@@ -76,6 +77,7 @@ from optisim.grasp import (
 )
 from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, build_estimator
 from optisim.export import BenchmarkExporter, ExportFormat, SceneExport, SceneExporter, TrajectoryExport, TrajectoryExporter
+from optisim.faultdetect import FaultCode, FaultEvent, FaultHistory, JointMonitor, RobotFaultMonitor
 from optisim.gait import CPGOscillator, GaitController, GaitPattern, GaitPhase, LegCycle
 from optisim.library import TaskCatalog
 from optisim.lfd import (
@@ -209,6 +211,7 @@ __all__ = [
     "dexterous",
     "energy",
     "export",
+    "faultdetect",
     "footstep",
     "gait",
     "language",
@@ -312,6 +315,11 @@ __all__ = [
     "TrajectoryExporter",
     "SceneExporter",
     "BenchmarkExporter",
+    "FaultCode",
+    "FaultEvent",
+    "JointMonitor",
+    "RobotFaultMonitor",
+    "FaultHistory",
     "GaitPhase",
     "LegCycle",
     "GaitPattern",
@@ -466,4 +474,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.26.0"
+__version__ = "0.27.0"

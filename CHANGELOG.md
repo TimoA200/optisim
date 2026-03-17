@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.27.0] - 2026-03-18
+
+### Added
+
+- Added `optisim.faultdetect`: `FaultCode`, `FaultEvent`, `JointMonitor`, `RobotFaultMonitor`, and `FaultHistory`.
+- Added joint-level torque, velocity, position, thermal, stall, and sensor-dropout fault detection for real-time health monitoring.
+- Added pytest coverage for fault event validation, joint/robot fault aggregation, bounded history queries, package exports, and version metadata.
+
 ## [0.26.0] - 2026-03-17
 
 ### Added
