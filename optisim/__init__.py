@@ -6,6 +6,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 
 from . import scene as scene
 from . import benchmark as benchmark
+from . import curriculum as curriculum
 from . import export as export
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
@@ -13,6 +14,19 @@ from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkRe
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.bimanual import BimanualCoordinator, BimanualTask, CooperativeManipulation, TaskPresets
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
+from optisim.curriculum import (
+    CurriculumCallback,
+    CurriculumConfig,
+    CurriculumTrainer,
+    CurriculumTrainerConfig,
+    DifficultyLevel,
+    EarlyStopCallback as CurriculumEarlyStopCallback,
+    EpisodeResult,
+    HistoryCallback as CurriculumHistoryCallback,
+    LoggingCallback as CurriculumLoggingCallback,
+    TaskRecord,
+    TaskScheduler,
+)
 from optisim.dynamics import (
     ConstraintSet,
     ConstraintViolation,
@@ -155,6 +169,7 @@ __all__ = [
     "analyze_trajectory",
     "compare_trajectories",
     "benchmark",
+    "curriculum",
     "export",
     "BatchConfig",
     "BatchResult",
@@ -176,6 +191,17 @@ __all__ = [
     "ActionPrimitive",
     "TaskComposer",
     "TaskDefinition",
+    "CurriculumCallback",
+    "CurriculumConfig",
+    "CurriculumTrainer",
+    "CurriculumTrainerConfig",
+    "DifficultyLevel",
+    "CurriculumEarlyStopCallback",
+    "EpisodeResult",
+    "CurriculumHistoryCallback",
+    "CurriculumLoggingCallback",
+    "TaskRecord",
+    "TaskScheduler",
     "ConstraintSet",
     "ConstraintViolation",
     "DynamicsReport",
@@ -326,4 +352,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
