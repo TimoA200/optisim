@@ -7,6 +7,7 @@ here so importing ``optisim`` does not pull in optional web dependencies.
 from . import scene as scene
 from . import terrain as terrain
 from . import benchmark as benchmark
+from . import balance as balance
 from . import contact as contact
 from . import curriculum as curriculum
 from . import dexterous as dexterous
@@ -20,6 +21,7 @@ from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
+from optisim.balance import BalanceMonitor, BalanceReport, COMState, SupportPolygon, ZMPCalculator
 from optisim.benchmark import BenchmarkEvaluator, BenchmarkReporter, BenchmarkResult, BenchmarkSuite, BenchmarkTask
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.bimanual import BimanualCoordinator, BimanualTask, CooperativeManipulation, TaskPresets
@@ -196,6 +198,7 @@ __all__ = [
     "TrajectoryMetrics",
     "analyze_trajectory",
     "compare_trajectories",
+    "balance",
     "benchmark",
     "contact",
     "curriculum",
@@ -214,6 +217,11 @@ __all__ = [
     "BatchRunner",
     "BatchTaskResult",
     "run_batch",
+    "COMState",
+    "ZMPCalculator",
+    "SupportPolygon",
+    "BalanceMonitor",
+    "BalanceReport",
     "BenchmarkTask",
     "BenchmarkSuite",
     "BenchmarkResult",
@@ -443,4 +451,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.23.0"
+__version__ = "0.24.0"

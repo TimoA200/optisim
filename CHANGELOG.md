@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.24.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.balance`: `COMState`, `ZMPCalculator`, `SupportPolygon`, `BalanceMonitor`, and `BalanceReport`.
+- Added whole-body balance helpers for CoM state tracking, convex support polygon construction, ZMP evaluation, and balance-history monitoring.
+- Added pytest coverage for ZMP calculation, support polygon geometry, stability margins, monitor history behavior, and package exports.
+
 ## [0.23.0] - 2026-03-17
 
 ### Added
