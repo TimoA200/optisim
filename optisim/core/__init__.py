@@ -3,13 +3,14 @@
 from optisim.core.action_primitives import ActionPrimitive, ActionType
 from optisim.core.task_composer import TaskComposer
 from optisim.core.task_definition import TaskDefinition
-from optisim.core.task_validator import ValidationIssue, ValidationReport
+from optisim.core.task_validator import TaskValidator, ValidationIssue, ValidationReport
 
 __all__ = [
     "ActionPrimitive",
     "ActionType",
     "TaskComposer",
     "TaskDefinition",
+    "TaskValidator",
     "ValidationIssue",
     "ValidationReport",
 ]

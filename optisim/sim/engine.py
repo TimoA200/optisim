@@ -10,6 +10,7 @@ import numpy as np
 from optisim.core.action_primitives import ActionPrimitive, ActionType
 from optisim.core.task_definition import TaskDefinition
 from optisim.core.task_validator import TaskValidator, ValidationReport
+from optisim.dynamics import ConstraintSet, DynamicsReport, DynamicsValidator
 from optisim.math3d import Pose, Quaternion, normalize, vec3
 from optisim.robot import IKOptions, JointController, RobotModel, build_humanoid_model, solve_inverse_kinematics
 from optisim.sim.collision import Collision, object_surface_collision
@@ -42,11 +43,22 @@ class ExecutionEngine:
 
         self.controller = JointController(self.robot)
         self.validator = TaskValidator()
+        self.dynamics_validator = DynamicsValidator(self.validator)
 
     def validate(self, task: TaskDefinition) -> ValidationReport:
         """Validate a task against the engine's current robot and world."""
 
         return self.validator.validate(task=task, world=self.world, robot=self.robot)
+
+    def validate_dynamics(self, task: TaskDefinition, constraint_set: ConstraintSet | None = None) -> DynamicsReport:
+        """Run lightweight dynamics validation against the engine's current state."""
+
+        return self.dynamics_validator.validate_task(
+            task=task,
+            world=self.world,
+            robot=self.robot,
+            constraint_set=constraint_set,
+        )
 
     def run(self, task: TaskDefinition, visualize: "Visualizer | None" = None) -> SimulationRecord:
         """Execute a validated task and return a simulation record."""

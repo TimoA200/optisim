@@ -3,6 +3,17 @@
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.behavior import BTStatus, BehaviorTreeBuilder, BehaviorTreeExecutor
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
+from optisim.dynamics import (
+    ConstraintSet,
+    ConstraintViolation,
+    DynamicsReport,
+    DynamicsValidator,
+    JointTorqueLimit,
+    PayloadConstraint,
+    RigidBodyState,
+    TaskEnergyProfile,
+    WorkspaceConstraint,
+)
 from optisim.grasp import (
     ContactPatch,
     ContactPoint,
@@ -38,6 +49,15 @@ __all__ = [
     "ActionPrimitive",
     "TaskComposer",
     "TaskDefinition",
+    "ConstraintSet",
+    "ConstraintViolation",
+    "DynamicsReport",
+    "DynamicsValidator",
+    "JointTorqueLimit",
+    "PayloadConstraint",
+    "RigidBodyState",
+    "TaskEnergyProfile",
+    "WorkspaceConstraint",
     "ContactPatch",
     "ContactPoint",
     "GraspExecutor",

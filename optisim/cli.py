@@ -12,6 +12,7 @@ from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
+from optisim.dynamics import ConstraintSet, DynamicsValidator, PayloadConstraint
 from optisim.grasp import GraspExecutor, GraspPlanner, Gripper, GripperType, default_parallel_jaw, default_suction, default_three_finger
 from optisim.library import TaskCatalog
 from optisim.multi import Dependency, RobotFleet, TaskAssignment, TaskCoordinator
@@ -35,6 +36,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate_parser = subparsers.add_parser("validate", help="validate a task file")
     validate_parser.add_argument("task_file", type=Path)
+
+    dynamics_parser = subparsers.add_parser("validate-dynamics", help="validate task dynamics and constraints")
+    dynamics_parser.add_argument("task_file", type=Path)
+    dynamics_parser.add_argument("--max-payload", type=float)
+    dynamics_parser.add_argument("--end-effector", default="right_palm")
+    dynamics_parser.add_argument("--check-torques", action="store_true")
 
     plan_parser = subparsers.add_parser("plan", help="plan task reach motions")
     plan_parser.add_argument("task_file", type=Path)
@@ -144,6 +151,31 @@ def main(argv: list[str] | None = None) -> int:
             location = f" action[{issue.action_index}]" if issue.action_index is not None else ""
             print(f"{issue.severity}{location}: {issue.message}")
         return 0 if report.is_valid else 1
+
+    if args.command == "validate-dynamics":
+        task = TaskDefinition.from_file(args.task_file)
+        world = WorldState.from_dict(task.world)
+        robot = _load_robot(task.robot)
+        engine = ExecutionEngine(robot=robot, world=world)
+        constraints = ConstraintSet()
+        if args.max_payload is not None:
+            constraints.payload_constraints.append(
+                PayloadConstraint(max_payload_kg=args.max_payload, end_effector=args.end_effector)
+            )
+        if args.check_torques:
+            constraints.joint_torque_limits = DynamicsValidator.default_torque_limits(robot)
+        report = engine.validate_dynamics(task, constraint_set=constraints)
+        status = "feasible" if report.feasible else "infeasible"
+        print(
+            f"{status} total_energy={report.energy_profile.total_energy:.3f}J "
+            f"peak_power={report.energy_profile.peak_power:.3f}W"
+        )
+        for violation in report.violations:
+            joint = f" joint={violation.joint_name}" if violation.joint_name else ""
+            print(f"{violation.severity}{joint}: {violation.message}")
+        for warning in report.warnings:
+            print(f"warning: {warning}")
+        return 0 if report.feasible else 1
 
     if args.command == "replay":
         return _run_replay(args)
