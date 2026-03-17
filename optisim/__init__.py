@@ -66,6 +66,19 @@ from optisim.policy import (
     train_policy,
 )
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
+from optisim.primitives import (
+    GraspPrimitive,
+    HandoverPrimitive,
+    MotionPrimitive,
+    NavigatePrimitive,
+    PlacePrimitive,
+    PrimitiveExecutor,
+    PrimitiveResult,
+    PrimitiveStatus,
+    PushPrimitive,
+    ReachPrimitive,
+    apply_effects,
+)
 from optisim.rl import (
     ActorCritic,
     PPOConfig,
@@ -224,6 +237,17 @@ __all__ = [
     "MotionPlanner",
     "PlanningResult",
     "RRTConfig",
+    "PrimitiveStatus",
+    "PrimitiveResult",
+    "MotionPrimitive",
+    "ReachPrimitive",
+    "GraspPrimitive",
+    "PlacePrimitive",
+    "PushPrimitive",
+    "HandoverPrimitive",
+    "NavigatePrimitive",
+    "PrimitiveExecutor",
+    "apply_effects",
     "ContactPhase",
     "ManipulationFSM",
     "ReactiveConfig",
@@ -285,4 +309,4 @@ __all__ = [
     "build_wbc_controller",
 ]
 
-__version__ = "0.9.0"
+__version__ = "0.10.0"
