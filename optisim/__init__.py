@@ -37,6 +37,15 @@ from optisim.grasp import (
 from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
+from optisim.reactive import (
+    ContactPhase,
+    ManipulationFSM,
+    ReactiveConfig,
+    ReactiveController,
+    ReactiveExecutionResult,
+    ReactiveState,
+    run_reactive_manipulation,
+)
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
 from optisim.scenario import (
     ScenarioConfig,
@@ -128,6 +137,13 @@ __all__ = [
     "MotionPlanner",
     "PlanningResult",
     "RRTConfig",
+    "ContactPhase",
+    "ManipulationFSM",
+    "ReactiveConfig",
+    "ReactiveController",
+    "ReactiveExecutionResult",
+    "ReactiveState",
+    "run_reactive_manipulation",
     "DemoHumanoidSpec",
     "HumanoidSpec",
     "RobotModel",
