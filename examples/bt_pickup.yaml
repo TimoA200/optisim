@@ -1,0 +1,107 @@
+name: bt_pickup
+blackboard:
+  preferred_hand: right_palm
+world:
+  objects:
+    - name: box
+      pose:
+        position: [0.42, -0.12, 0.81]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.08, 0.08, 0.12]
+      mass_kg: 0.75
+  surfaces:
+    - name: table
+      pose:
+        position: [0.55, 0.0, 0.74]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.90, 0.60, 0.05]
+    - name: shelf
+      pose:
+        position: [0.60, -0.25, 1.02]
+        rpy: [0.0, 0.0, 0.0]
+      size: [0.35, 0.25, 0.04]
+tree:
+  type: sequence
+  name: pickup_root
+  children:
+    - type: condition
+      name: object_is_reachable
+      condition:
+        predicate: object_reachable
+        object: box
+        reach_scale: 1.0
+    - type: fallback
+      name: choose_hand
+      children:
+        - type: sequence
+          name: right_hand_pickup
+          children:
+            - type: action
+              name: reach_right
+              action:
+                type: reach
+                target: box
+                end_effector: right_palm
+            - type: action
+              name: grasp_right
+              action:
+                type: grasp
+                target: box
+                end_effector: right_palm
+            - type: action
+              name: lift_right
+              action:
+                type: move
+                target: box
+                end_effector: right_palm
+                destination: [0.42, -0.12, 1.02]
+            - type: action
+              name: move_right
+              action:
+                type: move
+                target: box
+                end_effector: right_palm
+                destination: [0.60, -0.25, 1.08]
+            - type: action
+              name: place_right
+              action:
+                type: place
+                target: box
+                end_effector: right_palm
+                support: shelf
+        - type: sequence
+          name: left_hand_pickup
+          children:
+            - type: action
+              name: reach_left
+              action:
+                type: reach
+                target: box
+                end_effector: left_palm
+            - type: action
+              name: grasp_left
+              action:
+                type: grasp
+                target: box
+                end_effector: left_palm
+            - type: action
+              name: lift_left
+              action:
+                type: move
+                target: box
+                end_effector: left_palm
+                destination: [0.42, -0.12, 1.02]
+            - type: action
+              name: move_left
+              action:
+                type: move
+                target: box
+                end_effector: left_palm
+                destination: [0.60, -0.25, 1.08]
+            - type: action
+              name: place_left
+              action:
+                type: place
+                target: box
+                end_effector: left_palm
+                support: shelf

@@ -10,6 +10,7 @@ import yaml
 
 from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
+from optisim.behavior import BehaviorTreeDefinition, BehaviorTreeExecutor
 from optisim.core import TaskDefinition
 from optisim.planning import MotionPlanner
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
@@ -63,6 +64,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="parameter range such as 2:speed:0.2,0.3 or 2:destination:[0.5,0,1.0],[0.6,-0.2,1.1]",
     )
 
+    bt_parser = subparsers.add_parser("bt", help="behavior tree tools")
+    bt_subparsers = bt_parser.add_subparsers(dest="bt_command", required=True)
+
+    bt_run_parser = bt_subparsers.add_parser("run", help="run a behavior tree file")
+    bt_run_parser.add_argument("tree_file", type=Path)
+    bt_run_parser.add_argument("--visualize", action="store_true")
+    bt_run_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
+    bt_run_parser.add_argument("--web", action="store_true", help="launch the web visualizer")
+    bt_run_parser.add_argument("--recording-out", type=Path, help="export a JSON simulation recording")
+    bt_run_parser.add_argument("--max-ticks", type=int, default=1_000)
+
+    bt_validate_parser = bt_subparsers.add_parser("validate", help="validate a behavior tree file")
+    bt_validate_parser.add_argument("tree_file", type=Path)
+
     return parser
 
 
@@ -93,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "sweep":
         return _run_sweep(args)
+
+    if args.command == "bt":
+        return _run_behavior_tree(args)
 
     task = TaskDefinition.from_file(args.task_file)
     world = WorldState.from_dict(task.world)
@@ -309,3 +327,29 @@ def _parse_cli_value(token: str) -> float | list[float]:
     if isinstance(payload, list):
         return [float(item) for item in payload]
     return float(payload)
+
+
+def _run_behavior_tree(args: argparse.Namespace) -> int:
+    definition = BehaviorTreeDefinition.from_file(args.tree_file)
+    if args.bt_command == "validate":
+        print(f"valid behavior tree '{definition.name}'")
+        return 0
+
+    executor = BehaviorTreeExecutor.from_definition(definition)
+    visualizer = _build_visualizer(args)
+    try:
+        result = executor.run(max_ticks=args.max_ticks, visualizer=visualizer)
+        if args.recording_out and result.recording is not None:
+            result.recording.dump(args.recording_out)
+            print(f"recording saved to {args.recording_out}")
+        print(
+            f"behavior tree '{definition.name}' finished with status={result.status.value} "
+            f"ticks={result.ticks} duration={result.duration_s:.2f}s"
+        )
+        if args.web and isinstance(visualizer, WebVisualizer):
+            print(f"web visualizer available at {visualizer.url} (Ctrl+C to exit)")
+            visualizer.block()
+        return 0 if result.status.value == "success" else 1
+    finally:
+        if isinstance(visualizer, WebVisualizer):
+            visualizer.close()
