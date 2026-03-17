@@ -20,6 +20,7 @@
 - ✅ Deterministic step-based execution for reproducible task development
 - ✅ YAML and Python task authoring paths for fast iteration
 - ✅ Lightweight world modeling with objects, surfaces, and coarse collision checks
+- ✅ RRT and RRT-Connect collision-aware motion planning with path smoothing
 - ✅ Rich terminal visualization that works locally, over SSH, and in CI logs
 - ✅ Optional matplotlib backend for quick spatial inspection
 - ✅ Runnable end-to-end examples for pick/place, pouring, door opening, and stacking

@@ -2,6 +2,7 @@
 
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.core import ActionPrimitive, TaskComposer, TaskDefinition, ValidationReport
+from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
 from optisim.sim import ExecutionEngine, WorldState
 
@@ -13,6 +14,9 @@ __all__ = [
     "TaskComposer",
     "TaskDefinition",
     "ValidationReport",
+    "MotionPlanner",
+    "PlanningResult",
+    "RRTConfig",
     "DemoHumanoidSpec",
     "HumanoidSpec",
     "RobotModel",

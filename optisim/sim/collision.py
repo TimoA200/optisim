@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from optisim.sim.world import ObjectState, Surface
+from optisim.robot.model import RobotModel
+from optisim.sim.world import ObjectState, Surface, WorldState
 
 
 @dataclass(slots=True)
@@ -40,6 +41,56 @@ def object_surface_collision(obj: ObjectState, surface: Surface) -> Collision | 
     if hit is None:
         return None
     return Collision(entity_a=obj.name, entity_b=surface.name, penetration_depth=hit.penetration_depth)
+
+
+def object_object_collision(object_a: ObjectState, object_b: ObjectState) -> Collision | None:
+    """Check whether two world objects intersect."""
+
+    a_min, a_max = object_a.aabb
+    b_min, b_max = object_b.aabb
+    hit = intersect_aabb(a_min, a_max, b_min, b_max)
+    if hit is None:
+        return None
+    return Collision(entity_a=object_a.name, entity_b=object_b.name, penetration_depth=hit.penetration_depth)
+
+
+def surface_aabb(surface: Surface) -> tuple[np.ndarray, np.ndarray]:
+    """Return the axis-aligned bounding box for a surface."""
+
+    half = np.asarray(surface.size, dtype=np.float64) / 2.0
+    return surface.pose.position - half, surface.pose.position + half
+
+
+def robot_world_collisions(
+    robot: RobotModel,
+    world: WorldState,
+    joint_positions: dict[str, float] | None = None,
+    *,
+    link_names: set[str] | None = None,
+) -> list[Collision]:
+    """Return collisions between robot link bounds and world objects or surfaces."""
+
+    collisions: list[Collision] = []
+    link_aabbs = robot.link_aabbs(joint_positions)
+
+    for link_name, (link_min, link_max) in link_aabbs.items():
+        if link_names is not None and link_name not in link_names:
+            continue
+        for obj in world.objects.values():
+            obj_min, obj_max = obj.aabb
+            hit = intersect_aabb(link_min, link_max, obj_min, obj_max)
+            if hit is not None:
+                collisions.append(
+                    Collision(entity_a=link_name, entity_b=obj.name, penetration_depth=hit.penetration_depth)
+                )
+        for surface in world.surfaces.values():
+            surf_min, surf_max = surface_aabb(surface)
+            hit = intersect_aabb(link_min, link_max, surf_min, surf_max)
+            if hit is not None:
+                collisions.append(
+                    Collision(entity_a=link_name, entity_b=surface.name, penetration_depth=hit.penetration_depth)
+                )
+    return collisions
 
 
 def mesh_hint_collision(vertices_a: np.ndarray, vertices_b: np.ndarray) -> bool:

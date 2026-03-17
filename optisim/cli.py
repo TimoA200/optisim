@@ -11,6 +11,7 @@ import yaml
 from optisim import __version__
 from optisim.analytics import ParameterRange, analyze_trajectory, composite_score, sweep_task
 from optisim.core import TaskDefinition
+from optisim.planning import MotionPlanner
 from optisim.robot import RobotModel, build_humanoid_model, load_urdf
 from optisim.sim import ExecutionEngine, SimulationRecording, WorldState, replay_recording
 from optisim.viz import MatplotlibVisualizer, TerminalVisualizer, WebVisualizer
@@ -30,6 +31,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate_parser = subparsers.add_parser("validate", help="validate a task file")
     validate_parser.add_argument("task_file", type=Path)
+
+    plan_parser = subparsers.add_parser("plan", help="plan task reach motions")
+    plan_parser.add_argument("task_file", type=Path)
+    plan_parser.add_argument("--visualize", action="store_true")
+    plan_parser.add_argument("--backend", choices=("terminal", "matplotlib"), default="terminal")
 
     sim_parser = subparsers.add_parser("sim", help="run the simulator with an optional task")
     sim_parser.add_argument("task_file", nargs="?", type=Path, default=Path("examples/pick_and_place.yaml"))
@@ -78,6 +84,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "replay":
         return _run_replay(args)
+
+    if args.command == "plan":
+        return _run_plan(args)
 
     if args.command == "analyze":
         return _run_analysis(args)
@@ -187,6 +196,60 @@ def _run_analysis(args: argparse.Namespace) -> int:
         print("  none")
 
     return 0
+
+
+def _run_plan(args: argparse.Namespace) -> int:
+    task = TaskDefinition.from_file(args.task_file)
+    world = WorldState.from_dict(task.world)
+    robot = _load_robot(task.robot)
+    planner = MotionPlanner(robot=robot, world=world)
+    visualizer = _build_visualizer(args)
+    current_config = dict(robot.joint_positions)
+
+    try:
+        if visualizer is not None:
+            visualizer.start_task(task, world, robot)
+            visualizer.render(world, robot)
+
+        planned_segments = 0
+        total_waypoints = 0
+        for index, action in enumerate(task.actions, start=1):
+            if action.action_type.value != "reach":
+                print(f"skipping action {index}: {action.action_type.value} {action.target}")
+                continue
+
+            target_pose = action.pose or world.objects[action.target].pose
+            result = planner.plan_to_pose(
+                current_config,
+                target_pose,
+                ik_options={"end_effector": action.end_effector, "position_only": action.pose is None},
+            )
+            if not result.success:
+                print(f"failed action {index}: reach {action.target} iterations={result.iterations}")
+                return 1
+
+            planned_segments += 1
+            total_waypoints += len(result.path)
+            current_config = dict(result.path[-1])
+            robot.set_joint_positions(current_config)
+            print(
+                f"planned action {index}: reach {action.target} "
+                f"waypoints={len(result.path)} iterations={result.iterations} time={result.planning_time:.3f}s"
+            )
+
+            if visualizer is not None:
+                visualizer.start_action(action, index=index, total_actions=len(task.actions))
+                for waypoint in result.path:
+                    robot.set_joint_positions(waypoint)
+                    visualizer.render(world, robot)
+
+        if visualizer is not None:
+            visualizer.finish(task, world, robot, collisions=[])
+        print(f"planned {planned_segments} reach motions with {total_waypoints} total waypoints")
+        return 0
+    finally:
+        if isinstance(visualizer, WebVisualizer):
+            visualizer.close()
 
 
 def _run_sweep(args: argparse.Namespace) -> int:
