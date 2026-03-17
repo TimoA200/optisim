@@ -14,6 +14,7 @@ from . import energy as energy
 from . import export as export
 from . import footstep as footstep
 from . import language as language
+from . import occupancy as occupancy
 from . import retarget as retarget
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
@@ -82,6 +83,7 @@ from optisim.lfd import (
 from optisim.language import GroundedInstruction, Grounder, InstructionParser, InstructionTemplate, ParsedIntent
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.mpc import FootstepPlanner, HumanoidMPC, MPCConfig, MPCSolution, build_humanoid_mpc
+from optisim.occupancy import CollisionChecker, OccupancyStats, OccupancyUpdater, VoxelGrid
 from optisim.perception import PerceptionPipeline, PointCloud, PoseEstimate, build_perception_pipeline
 from optisim.policy import (
     BCConfig,
@@ -200,6 +202,7 @@ __all__ = [
     "export",
     "footstep",
     "language",
+    "occupancy",
     "retarget",
     "terrain",
     "worldmodel",
@@ -314,6 +317,10 @@ __all__ = [
     "HumanoidMPC",
     "FootstepPlanner",
     "build_humanoid_mpc",
+    "VoxelGrid",
+    "OccupancyUpdater",
+    "CollisionChecker",
+    "OccupancyStats",
     "PointCloud",
     "PoseEstimate",
     "PerceptionPipeline",
@@ -429,4 +436,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.21.0"
+__version__ = "0.22.0"

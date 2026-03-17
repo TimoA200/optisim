@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.22.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.occupancy`: `VoxelGrid`, `OccupancyUpdater`, `CollisionChecker`, and `OccupancyStats`.
+- Added voxel/world coordinate transforms, occupancy/free-space updates, point-cloud export, and occupancy statistics helpers.
+- Added pytest coverage for occupancy mapping, ray clearing, collision checks, statistics, package exports, and version metadata.
+
 ## [0.21.0] - 2026-03-17
 
 ### Added
