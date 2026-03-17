@@ -30,6 +30,7 @@
 - ✅ `optisim.wbc`: whole-body control with hierarchical null-space task stacking and damped least-squares solves
 - ✅ `optisim.reactive`: reactive manipulation control with contact-phase FSMs and sensor-driven velocity scaling
 - ✅ `optisim.mpc`: linear inverted-pendulum MPC for CoM balance, ZMP regulation, and simple humanoid footstep planning
+- ✅ `optisim.footstep`: bipedal footstep planning, gait scheduling, swing-trajectory generation, and walking-plan analysis
 - ✅ `optisim.multi`: shared-world multi-robot fleet coordination with dependency-aware task scheduling
 - ✅ `optisim.library`: 12 built-in humanoid task templates for rapid scenario bootstrapping
 - ✅ `optisim.analytics`: trajectory metrics, run comparison, and profiling helpers

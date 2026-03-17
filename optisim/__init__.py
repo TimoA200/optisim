@@ -10,6 +10,7 @@ from . import contact as contact
 from . import curriculum as curriculum
 from . import dexterous as dexterous
 from . import export as export
+from . import footstep as footstep
 from . import worldmodel as worldmodel
 from optisim.analytics import TrajectoryMetrics, analyze_trajectory, compare_trajectories
 from optisim.batch import BatchConfig, BatchResult, BatchRunner, BatchTaskResult, run_batch
@@ -198,6 +199,7 @@ __all__ = [
     "curriculum",
     "dexterous",
     "export",
+    "footstep",
     "worldmodel",
     "BatchConfig",
     "BatchResult",
