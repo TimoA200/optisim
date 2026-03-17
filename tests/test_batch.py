@@ -135,7 +135,7 @@ def test_timeout_handling(monkeypatch: pytest.MonkeyPatch) -> None:
             return True
 
     class FakeExecutor:
-        def __init__(self, max_workers: int) -> None:
+        def __init__(self, max_workers: int, **kwargs: object) -> None:
             self.max_workers = max_workers
 
         def submit(self, fn, args):  # noqa: ANN001

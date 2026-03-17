@@ -64,6 +64,16 @@ from optisim.safety import (
     ZoneType,
 )
 from optisim.sim import ExecutionEngine, WorldState
+from optisim.wbc import (
+    BalanceTask,
+    EndEffectorTask,
+    JointLimitTask,
+    PostureTask,
+    WBCController,
+    WBCSolution,
+    WBCTask,
+    build_wbc_controller,
+)
 
 __all__ = [
     "TrajectoryMetrics",
@@ -143,6 +153,14 @@ __all__ = [
     "ZoneType",
     "ExecutionEngine",
     "WorldState",
+    "WBCTask",
+    "PostureTask",
+    "EndEffectorTask",
+    "BalanceTask",
+    "JointLimitTask",
+    "WBCController",
+    "WBCSolution",
+    "build_wbc_controller",
 ]
 
 __version__ = "0.2.0"

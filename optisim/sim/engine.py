@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from time import perf_counter
 from typing import Iterable
 
 import numpy as np
 
 from optisim.core.action_primitives import ActionPrimitive, ActionType
 from optisim.core.task_definition import TaskDefinition
+from optisim.hooks import HookRegistry, SimEvent
 from optisim.core.task_validator import TaskValidator, ValidationReport
 from optisim.dynamics import ConstraintSet, DynamicsReport, DynamicsValidator
 from optisim.math3d import Pose, Quaternion, normalize, vec3
@@ -37,6 +39,7 @@ class ExecutionEngine:
     world: WorldState = field(default_factory=WorldState.with_defaults)
     dt: float = 0.05
     holder_prefix: str | None = None
+    hooks: HookRegistry | None = None
 
     def __post_init__(self) -> None:
         """Create helper subsystems after engine construction."""
@@ -44,6 +47,8 @@ class ExecutionEngine:
         self.controller = JointController(self.robot)
         self.validator = TaskValidator()
         self.dynamics_validator = DynamicsValidator(self.validator)
+        self._active_task_name: str | None = None
+        self._hook_step_count = 0
 
     def validate(self, task: TaskDefinition) -> ValidationReport:
         """Validate a task against the engine's current robot and world."""
@@ -80,37 +85,80 @@ class ExecutionEngine:
 
         if visualize is not None:
             visualize.start_task(task, self.world, self.robot)
+        self._active_task_name = task.name
+        self._hook_step_count = 0
+        task_started_at = perf_counter()
+        self._emit_hook(
+            "task_start",
+            data={"actions_total": len(task.actions), "robot_name": self.robot.name},
+        )
         self._emit_frame(visualize=visualize, recording=recording, active_action=None, collisions=[])
 
-        for index, action in enumerate(task.actions, start=1):
-            action_label = f"{action.action_type.value} {action.target}"
-            executed_actions.append(action.action_type.value)
-            if visualize is not None:
-                visualize.start_action(action, index=index, total_actions=len(task.actions))
-            frame_count_before = recording.frame_count()
-            steps += self._execute_action(action, visualize, recording, action_label)
-            current_collisions = self._check_collisions()
-            collisions.extend(current_collisions)
-            if visualize is not None:
-                visualize.update_collisions(current_collisions)
-            if recording.frame_count() == frame_count_before:
-                self._emit_frame(
-                    visualize=visualize,
-                    recording=recording,
-                    active_action=action_label,
-                    collisions=current_collisions,
+        task_success = False
+        try:
+            for index, action in enumerate(task.actions, start=1):
+                action_label = f"{action.action_type.value} {action.target}"
+                executed_actions.append(action.action_type.value)
+                if visualize is not None:
+                    visualize.start_action(action, index=index, total_actions=len(task.actions))
+                self._emit_hook(
+                    "action_start",
+                    data={
+                        "action_type": action.action_type.value,
+                        "action_index": index,
+                        "target": action.target,
+                    },
                 )
+                frame_count_before = recording.frame_count()
+                action_started_at = perf_counter()
+                action_success = False
+                try:
+                    steps += self._execute_action(action, visualize, recording, action_label)
+                    action_success = True
+                finally:
+                    self._emit_hook(
+                        "action_end",
+                        data={
+                            "action_type": action.action_type.value,
+                            "action_index": index,
+                            "success": action_success,
+                            "elapsed_ms": (perf_counter() - action_started_at) * 1000.0,
+                        },
+                    )
+                current_collisions = self._check_collisions()
+                collisions.extend(current_collisions)
+                self._emit_collision_event(current_collisions)
+                if visualize is not None:
+                    visualize.update_collisions(current_collisions)
+                if recording.frame_count() == frame_count_before:
+                    self._emit_frame(
+                        visualize=visualize,
+                        recording=recording,
+                        active_action=action_label,
+                        collisions=current_collisions,
+                    )
 
-        if visualize is not None:
-            visualize.finish(task, self.world, self.robot, collisions)
-
-        return SimulationRecord(
-            steps=steps,
-            duration_s=self.world.time_s,
-            executed_actions=executed_actions,
-            collisions=collisions,
-            recording=recording,
-        )
+            if visualize is not None:
+                visualize.finish(task, self.world, self.robot, collisions)
+            task_success = True
+            return SimulationRecord(
+                steps=steps,
+                duration_s=self.world.time_s,
+                executed_actions=executed_actions,
+                collisions=collisions,
+                recording=recording,
+            )
+        finally:
+            self._emit_hook(
+                "task_end",
+                data={
+                    "success": task_success,
+                    "steps_total": steps,
+                    "elapsed_ms": (perf_counter() - task_started_at) * 1000.0,
+                    "collision_count": len(collisions),
+                },
+            )
+            self._active_task_name = None
 
     def step(
         self,
@@ -118,11 +166,21 @@ class ExecutionEngine:
         *,
         recording: SimulationRecording | None = None,
         active_action: str | None = None,
+        action_type: str | None = None,
     ) -> list[Collision]:
         """Advance simulated time by one fixed step and refresh visualization."""
 
         self.world.time_s += self.dt
         collisions = self._check_collisions()
+        self._hook_step_count += 1
+        self._emit_hook(
+            "step",
+            data={
+                "action_type": action_type or self._infer_action_type(active_action),
+                "joint_positions": {name: float(value) for name, value in self.robot.joint_positions.items()},
+            },
+        )
+        self._emit_collision_event(collisions)
         self._emit_frame(
             visualize=visualize,
             recording=recording,
@@ -176,7 +234,12 @@ class ExecutionEngine:
         steps = 0
         while any(abs(self.robot.joint_positions[name] - value) > 1e-3 for name, value in targets.items()):
             self.controller.step_towards(targets, self.dt)
-            self.step(visualize, recording=recording, active_action=active_action)
+            self.step(
+                visualize,
+                recording=recording,
+                active_action=active_action,
+                action_type=action.action_type.value,
+            )
             steps += 1
             if steps > 200:
                 break
@@ -220,7 +283,12 @@ class ExecutionEngine:
         for step_index in range(1, steps + 1):
             alpha = step_index / steps
             obj.pose = Pose(position=start * (1 - alpha) + destination * alpha, orientation=obj.pose.orientation)
-            self.step(visualize, recording=recording, active_action=active_action)
+            self.step(
+                visualize,
+                recording=recording,
+                active_action=active_action,
+                action_type=action.action_type.value,
+            )
         return steps
 
     def _place(
@@ -235,7 +303,12 @@ class ExecutionEngine:
         z = surface.pose.position[2] + surface.size[2] / 2.0 + obj.size[2] / 2.0
         obj.pose = Pose(position=vec3([obj.pose.position[0], obj.pose.position[1], z]), orientation=obj.pose.orientation)
         obj.held_by = None
-        self.step(visualize, recording=recording, active_action=active_action)
+        self.step(
+            visualize,
+            recording=recording,
+            active_action=active_action,
+            action_type=action.action_type.value,
+        )
         return 1
 
     def _translate_object(
@@ -269,7 +342,12 @@ class ExecutionEngine:
         half_angle = (action.angle_rad or 0.0) / 2.0
         q = Quaternion(np.cos(half_angle), *(axis * np.sin(half_angle)))
         obj.pose = Pose(position=obj.pose.position, orientation=obj.pose.orientation * q)
-        self.step(visualize, recording=recording, active_action=active_action)
+        self.step(
+            visualize,
+            recording=recording,
+            active_action=active_action,
+            action_type=action.action_type.value,
+        )
         return 1
 
     def _emit_frame(
@@ -307,6 +385,35 @@ class ExecutionEngine:
         if self.holder_prefix:
             return f"{self.holder_prefix}:{canonical_effector}"
         return canonical_effector
+
+    def _emit_hook(self, kind: str, *, data: dict[str, object]) -> None:
+        if self.hooks is None or self._active_task_name is None:
+            return
+        self.hooks.emit(
+            SimEvent(
+                kind=kind,
+                task_name=self._active_task_name,
+                step=self._hook_step_count,
+                data=data,
+            )
+        )
+
+    def _emit_collision_event(self, collisions: list[Collision]) -> None:
+        if not collisions:
+            return
+        self._emit_hook(
+            "collision",
+            data={
+                "pairs": [(collision.entity_a, collision.entity_b) for collision in collisions],
+                "count": len(collisions),
+            },
+        )
+
+    @staticmethod
+    def _infer_action_type(active_action: str | None) -> str:
+        if not active_action:
+            return ""
+        return active_action.split(" ", maxsplit=1)[0]
 
 
 class Visualizer:

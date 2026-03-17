@@ -277,7 +277,11 @@ def _execute_batch(
 
     futures: dict[Future[BatchTaskResult], _TaskInvocation] = {}
     results: list[BatchTaskResult] = []
-    executor = ProcessPoolExecutor(max_workers=config.n_workers)
+    # Use "spawn" start method to avoid fork-related deadlocks when called
+    # from a multi-threaded parent (e.g. pytest, web servers, async runtimes).
+    import multiprocessing
+    mp_ctx = multiprocessing.get_context("spawn")
+    executor = ProcessPoolExecutor(max_workers=config.n_workers, mp_context=mp_ctx)
     try:
         for invocation in invocations:
             invocation.submitted_at = time.perf_counter()
