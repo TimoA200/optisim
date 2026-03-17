@@ -37,6 +37,13 @@ from optisim.library import TaskCatalog
 from optisim.multi import AssignmentValidator, Dependency, MultiRobotRecord, RobotFleet, TaskAssignment, TaskCoordinator
 from optisim.planning import MotionPlanner, PlanningResult, RRTConfig
 from optisim.robot import DemoHumanoidSpec, HumanoidSpec, RobotModel, build_demo_humanoid, build_humanoid_model
+from optisim.scenario import (
+    ScenarioConfig,
+    ScenarioResult,
+    ScenarioRunner,
+    ScenarioStepResult,
+    SensorReading,
+)
 from optisim.sensors import (
     DepthCameraSensor,
     ForceTorqueSensor,
@@ -109,6 +116,11 @@ __all__ = [
     "RobotModel",
     "build_demo_humanoid",
     "build_humanoid_model",
+    "ScenarioConfig",
+    "ScenarioResult",
+    "ScenarioRunner",
+    "ScenarioStepResult",
+    "SensorReading",
     "DepthCameraSensor",
     "ForceTorqueSensor",
     "IMUSensor",
