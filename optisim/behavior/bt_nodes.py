@@ -242,7 +242,7 @@ class _ReachRunner(_ActionRunner):
                     position_only=action.pose is None,
                 ),
             )
-            if not result.success and not result.joint_positions:
+            if not context.engine._ik_result_is_actionable(result, position_only=action.pose is None):
                 return BTStatus.FAILURE
             self.targets = result.joint_positions
         if self.targets is None:

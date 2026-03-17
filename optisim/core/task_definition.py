@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
 
 import yaml
+from yaml import YAMLError
 
 from optisim.core.action_primitives import ActionPrimitive
 from optisim.core.task_composer import TaskComposer
@@ -48,28 +50,62 @@ class TaskDefinition:
     def from_dict(cls, payload: dict[str, Any]) -> "TaskDefinition":
         """Create a task definition from an in-memory mapping payload."""
 
-        actions = [ActionPrimitive.from_dict(item) for item in payload.get("actions", [])]
-        return cls(
-            name=payload["name"],
-            actions=actions,
-            world=dict(payload.get("world", {})),
-            robot=dict(payload.get("robot", {})),
-            metadata=dict(payload.get("metadata", {})),
-        )
+        if not isinstance(payload, dict):
+            raise ValueError("task payload must be a mapping")
+        name = payload.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("task file must define a non-empty string field 'name'")
+        raw_actions = payload.get("actions")
+        if not isinstance(raw_actions, list) or not raw_actions:
+            raise ValueError("task file must define a non-empty 'actions' list")
+        actions: list[ActionPrimitive] = []
+        for index, item in enumerate(raw_actions):
+            if not isinstance(item, dict):
+                raise ValueError(f"action[{index}] must be a mapping")
+            try:
+                actions.append(ActionPrimitive.from_dict(item))
+            except KeyError as exc:
+                missing = exc.args[0]
+                raise ValueError(f"action[{index}] is missing required field '{missing}'") from exc
+            except ValueError as exc:
+                raise ValueError(f"action[{index}] is invalid: {exc}") from exc
+
+        world = payload.get("world", {})
+        if not isinstance(world, dict):
+            raise ValueError("task field 'world' must be a mapping")
+        robot = payload.get("robot", {})
+        if not isinstance(robot, dict):
+            raise ValueError("task field 'robot' must be a mapping")
+        metadata = payload.get("metadata", {})
+        if not isinstance(metadata, dict):
+            raise ValueError("task field 'metadata' must be a mapping")
+
+        return cls(name=name, actions=actions, world=dict(world), robot=dict(robot), metadata=dict(metadata))
 
     @classmethod
     def from_file(cls, path: str | Path) -> "TaskDefinition":
         """Load a task definition from a YAML or JSON file on disk."""
 
         source = Path(path)
-        raw = source.read_text(encoding="utf-8")
-        if source.suffix.lower() == ".json":
-            payload = json.loads(raw)
-        else:
-            payload = yaml.safe_load(raw)
+        try:
+            raw = source.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise ValueError(f"failed to read task file {source}: {exc}") from exc
+        try:
+            if source.suffix.lower() == ".json":
+                payload = json.loads(raw)
+            else:
+                payload = yaml.safe_load(raw)
+        except JSONDecodeError as exc:
+            raise ValueError(f"invalid JSON in task file {source}: {exc.msg}") from exc
+        except YAMLError as exc:
+            raise ValueError(f"invalid YAML in task file {source}: {exc}") from exc
         if not isinstance(payload, dict):
             raise ValueError(f"task file {source} does not contain a mapping")
-        return cls.from_dict(payload)
+        try:
+            return cls.from_dict(payload)
+        except ValueError as exc:
+            raise ValueError(f"invalid task file {source}: {exc}") from exc
 
     @classmethod
     def from_composer(

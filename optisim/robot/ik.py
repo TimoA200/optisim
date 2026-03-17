@@ -35,6 +35,7 @@ class IKResult:
     position_error: float
     orientation_error: float
     joint_positions: dict[str, float]
+    failure_reason: str | None = None
 
 
 def solve_inverse_kinematics(
@@ -58,6 +59,8 @@ def solve_inverse_kinematics(
     best_positions = dict(positions)
     best_position_error = float("inf")
     best_orientation_error = float("inf")
+    best_total_error = float("inf")
+    terminated_due_to_small_step = False
 
     for iteration in range(1, options.max_iterations + 1):
         current_pose = robot.end_effector_pose(effector, positions)
@@ -66,10 +69,11 @@ def solve_inverse_kinematics(
         orientation_error = 0.0 if options.position_only else float(np.linalg.norm(error_vector[3:]))
         total_error = float(np.linalg.norm(error_vector))
 
-        if total_error < best_position_error + best_orientation_error:
+        if total_error < best_total_error:
             best_positions = dict(positions)
             best_position_error = position_error
             best_orientation_error = orientation_error
+            best_total_error = total_error
 
         if total_error <= options.convergence_threshold:
             return IKResult(
@@ -78,6 +82,7 @@ def solve_inverse_kinematics(
                 position_error=position_error,
                 orientation_error=orientation_error,
                 joint_positions=_extract_positions(positions, active_chain),
+                failure_reason=None,
             )
 
         jacobian = _numerical_jacobian(robot, effector, active_chain, positions, options.position_only)
@@ -86,6 +91,7 @@ def solve_inverse_kinematics(
         delta_joints = jacobian.T @ delta_task
 
         if np.linalg.norm(delta_joints) < options.convergence_threshold * 0.1:
+            terminated_due_to_small_step = True
             break
 
         for joint_name, delta in zip(active_chain, delta_joints, strict=True):
@@ -94,11 +100,65 @@ def solve_inverse_kinematics(
 
     return IKResult(
         success=False,
-        iterations=options.max_iterations,
+        iterations=min(iteration, options.max_iterations),
         position_error=best_position_error,
         orientation_error=best_orientation_error,
         joint_positions=_extract_positions(best_positions, active_chain),
+        failure_reason=_classify_failure(
+            robot,
+            effector,
+            active_chain,
+            target,
+            best_positions,
+            best_position_error,
+            terminated_due_to_small_step=terminated_due_to_small_step,
+            convergence_threshold=options.convergence_threshold,
+            position_only=options.position_only,
+        ),
     )
+
+
+def _classify_failure(
+    robot: RobotModel,
+    effector: str,
+    active_chain: list[str],
+    target: Pose,
+    positions: dict[str, float],
+    position_error: float,
+    *,
+    terminated_due_to_small_step: bool,
+    convergence_threshold: float,
+    position_only: bool,
+) -> str:
+    """Provide a human-readable explanation for an IK failure."""
+
+    current_pose = robot.end_effector_pose(effector, positions)
+    target_distance = float(np.linalg.norm(target.position - robot.base_pose.position))
+    max_reach = robot.max_reach()
+    if target_distance > max_reach * 1.05:
+        return (
+            f"target is out of reach ({target_distance:.3f}m from base, "
+            f"robot reach is about {max_reach:.3f}m)"
+        )
+
+    saturated_joints = [
+        name
+        for name in active_chain
+        if np.isclose(positions[name], robot.joints[name].limit_lower, atol=1e-3)
+        or np.isclose(positions[name], robot.joints[name].limit_upper, atol=1e-3)
+    ]
+    if saturated_joints and position_error > convergence_threshold * 2.0:
+        joint_list = ", ".join(saturated_joints[:4])
+        suffix = "..." if len(saturated_joints) > 4 else ""
+        return f"joint limits prevented convergence ({joint_list}{suffix})"
+
+    if float(np.linalg.norm(target.position - current_pose.position)) > convergence_threshold * 2.0 and terminated_due_to_small_step:
+        return "solver stalled before reaching the target pose"
+
+    if terminated_due_to_small_step:
+        mode = "position" if position_only else "pose"
+        return f"{mode} target did not converge before the solver stalled"
+    return "solver exceeded the iteration limit before convergence"
 
 
 def _extract_positions(positions: dict[str, float], joint_names: list[str]) -> dict[str, float]:

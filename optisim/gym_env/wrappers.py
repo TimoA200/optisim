@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 def _require_gymnasium() -> None:
     if gym is None or spaces is None:
         raise ModuleNotFoundError(
-            "gymnasium is required for optisim.gym_env wrappers. Install with `pip install optisim[gym]`."
+            "gymnasium is required for optisim.gym_env wrappers. Install with `pip install optisim[rl]`."
         )
 
 
@@ -125,4 +125,3 @@ else:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             del args, kwargs
             _require_gymnasium()
-

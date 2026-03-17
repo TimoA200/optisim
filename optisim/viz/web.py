@@ -11,9 +11,15 @@ import webbrowser
 from dataclasses import dataclass, field
 from typing import Any
 
-import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+try:
+    import uvicorn
+    from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+    from fastapi.responses import HTMLResponse
+except ModuleNotFoundError as exc:  # pragma: no cover - exercised only without web deps installed.
+    raise ModuleNotFoundError(
+        "Web visualization requires the optional web dependencies. "
+        "Install with `pip install optisim[web]`."
+    ) from exc
 
 from optisim.core.action_primitives import ActionPrimitive
 from optisim.core.task_definition import TaskDefinition

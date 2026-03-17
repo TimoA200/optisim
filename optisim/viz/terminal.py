@@ -4,14 +4,20 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from rich.align import Align
-from rich.console import Console, Group
-from rich.layout import Layout
-from rich.live import Live
-from rich.panel import Panel
-from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn, TimeElapsedColumn
-from rich.table import Table
-from rich.text import Text
+try:
+    from rich.align import Align
+    from rich.console import Console, Group
+    from rich.layout import Layout
+    from rich.live import Live
+    from rich.panel import Panel
+    from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn, TimeElapsedColumn
+    from rich.table import Table
+    from rich.text import Text
+except ModuleNotFoundError as exc:  # pragma: no cover - exercised only without Rich installed.
+    raise ModuleNotFoundError(
+        "Terminal visualization requires the 'rich' dependency. "
+        "Install with `pip install optisim` or `pip install rich`."
+    ) from exc
 
 from optisim.core.action_primitives import ActionPrimitive
 from optisim.core.task_definition import TaskDefinition

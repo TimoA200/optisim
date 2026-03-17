@@ -11,7 +11,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised only without 
         def __init__(self, *args: object, **kwargs: object) -> None:
             raise ModuleNotFoundError(
                 "Terminal visualization requires the 'rich' dependency. "
-                "Install optisim with `pip install -e .` or add `rich` explicitly."
+                "Install with `pip install optisim` or `pip install rich`."
             ) from _terminal_import_error
 
 try:
@@ -23,7 +23,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised only without 
         def __init__(self, *args: object, **kwargs: object) -> None:
             raise ModuleNotFoundError(
                 "Web visualization requires the 'web' optional dependencies. "
-                "Install optisim with `pip install -e .[web]`."
+                "Install with `pip install optisim[web]`."
             ) from _web_import_error
 
 __all__ = ["MatplotlibVisualizer", "TerminalVisualizer", "WebVisualizer"]

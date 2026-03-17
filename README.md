@@ -9,7 +9,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
-[![Tests](https://github.com/example/optisim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/example/optisim/actions/workflows/ci.yml)
+[![Tests](https://github.com/TimoA200/optisim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/TimoA200/optisim/actions/workflows/ci.yml)
 
 `optisim` is a lightweight humanoid robot task planner and simulator for teams that want to move faster than a full robotics stack allows. It sits in the practical middle ground between task specs and heavyweight sim/control infrastructure, giving you a 31-DOF humanoid, inverse kinematics, deterministic execution, motion planning, behavior trees, grasp analysis, safety monitoring, sensor simulation, and terminal-first visualization in a small pure-Python package shaped for the current wave of general-purpose humanoid robotics, including Tesla Optimus-style manipulation workflows. The package currently ships with 12 built-in task templates and 231 tests.
 

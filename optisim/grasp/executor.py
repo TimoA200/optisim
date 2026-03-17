@@ -45,10 +45,11 @@ class GraspExecutor:
             robot={},
             metadata={"mode": "grasp_execution"},
         )
+        execution_succeeded = True
         try:
             engine.run(task)
         except ValueError:
-            return GraspResult(success=False)
+            execution_succeeded = False
 
         contact_points = grasp_pose.contact_points or surface_contacts(
             obj,
@@ -72,6 +73,8 @@ class GraspExecutor:
             for contact in contact_points
         )
         success = (
+            execution_succeeded
+            and
             bool(contact_points)
             and engine.world.objects[obj.name].held_by is not None
             and force_closure(contact_points)

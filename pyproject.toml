@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "optisim"
-version = "0.1.0"
+version = "0.2.0"
 description = "Lightweight humanoid robot task planner and simulator"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,14 +14,21 @@ authors = [
 ]
 keywords = ["robotics", "simulation", "task-planning", "humanoid", "urdf"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Typing :: Typed",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: Visualization",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -35,12 +42,14 @@ dependencies = [
 gym = ["gymnasium>=0.29"]
 viz = ["matplotlib>=3.8"]
 web = ["fastapi>=0.115", "uvicorn>=0.30"]
-dev = ["pytest>=8.0", "ruff>=0.4"]
+rl = ["gymnasium>=0.29"]
+dev = ["build>=1.2", "pytest>=8.0", "ruff>=0.4", "twine>=5.0"]
 
 [project.urls]
-Homepage = "https://github.com/example/optisim"
-Repository = "https://github.com/example/optisim"
-Issues = "https://github.com/example/optisim/issues"
+Homepage = "https://github.com/TimoA200/optisim"
+Repository = "https://github.com/TimoA200/optisim"
+Documentation = "https://github.com/TimoA200/optisim/tree/main/docs"
+"Bug Tracker" = "https://github.com/TimoA200/optisim/issues"
 
 [project.scripts]
 optisim = "optisim.cli:main"

@@ -228,8 +228,12 @@ class TaskCoordinator:
             yield
             if steps > 200:
                 break
-        if not ik_result.success and not targets:
-            raise ValueError(f"ik failed for action targeting '{action.target}'")
+        if not engine._ik_result_is_actionable(ik_result, position_only=action.pose is None):
+            reason = ik_result.failure_reason or "unknown reason"
+            raise ValueError(
+                f"ik failed for action targeting '{action.target}' with end effector "
+                f"'{action.end_effector}': {reason}"
+            )
         if steps == 0:
             engine._emit_frame(visualize=None, recording=recording, active_action=active_action, collisions=[])
             yield

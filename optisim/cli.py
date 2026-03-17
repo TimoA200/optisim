@@ -153,75 +153,79 @@ def main(argv: list[str] | None = None) -> int:
     """Run the CLI with optional argument overrides and return a process exit code."""
 
     args = build_parser().parse_args(argv)
-    if args.command == "validate":
-        task = TaskDefinition.from_file(args.task_file)
-        world = WorldState.from_dict(task.world)
-        robot = _load_robot(task.robot)
-        engine = ExecutionEngine(robot=robot, world=world)
-        report = engine.validate(task)
-        print(report.summary())
-        for issue in report.errors + report.warnings:
-            location = f" action[{issue.action_index}]" if issue.action_index is not None else ""
-            print(f"{issue.severity}{location}: {issue.message}")
-        return 0 if report.is_valid else 1
+    try:
+        if args.command == "validate":
+            task = TaskDefinition.from_file(args.task_file)
+            world = WorldState.from_dict(task.world)
+            robot = _load_robot(task.robot)
+            engine = ExecutionEngine(robot=robot, world=world)
+            report = engine.validate(task)
+            print(report.summary())
+            for issue in report.errors + report.warnings:
+                location = f" action[{issue.action_index}]" if issue.action_index is not None else ""
+                print(f"{issue.severity}{location}: {issue.message}")
+            return 0 if report.is_valid else 1
 
-    if args.command == "validate-dynamics":
-        task = TaskDefinition.from_file(args.task_file)
-        world = WorldState.from_dict(task.world)
-        robot = _load_robot(task.robot)
-        engine = ExecutionEngine(robot=robot, world=world)
-        constraints = ConstraintSet()
-        if args.max_payload is not None:
-            constraints.payload_constraints.append(
-                PayloadConstraint(max_payload_kg=args.max_payload, end_effector=args.end_effector)
+        if args.command == "validate-dynamics":
+            task = TaskDefinition.from_file(args.task_file)
+            world = WorldState.from_dict(task.world)
+            robot = _load_robot(task.robot)
+            engine = ExecutionEngine(robot=robot, world=world)
+            constraints = ConstraintSet()
+            if args.max_payload is not None:
+                constraints.payload_constraints.append(
+                    PayloadConstraint(max_payload_kg=args.max_payload, end_effector=args.end_effector)
+                )
+            if args.check_torques:
+                constraints.joint_torque_limits = DynamicsValidator.default_torque_limits(robot)
+            report = engine.validate_dynamics(task, constraint_set=constraints)
+            status = "feasible" if report.feasible else "infeasible"
+            print(
+                f"{status} total_energy={report.energy_profile.total_energy:.3f}J "
+                f"peak_power={report.energy_profile.peak_power:.3f}W"
             )
-        if args.check_torques:
-            constraints.joint_torque_limits = DynamicsValidator.default_torque_limits(robot)
-        report = engine.validate_dynamics(task, constraint_set=constraints)
-        status = "feasible" if report.feasible else "infeasible"
-        print(
-            f"{status} total_energy={report.energy_profile.total_energy:.3f}J "
-            f"peak_power={report.energy_profile.peak_power:.3f}W"
-        )
-        for violation in report.violations:
-            joint = f" joint={violation.joint_name}" if violation.joint_name else ""
-            print(f"{violation.severity}{joint}: {violation.message}")
-        for warning in report.warnings:
-            print(f"warning: {warning}")
-        return 0 if report.feasible else 1
+            for violation in report.violations:
+                joint = f" joint={violation.joint_name}" if violation.joint_name else ""
+                print(f"{violation.severity}{joint}: {violation.message}")
+            for warning in report.warnings:
+                print(f"warning: {warning}")
+            return 0 if report.feasible else 1
 
-    if args.command == "replay":
-        return _run_replay(args)
+        if args.command == "replay":
+            return _run_replay(args)
 
-    if args.command == "plan":
-        return _run_plan(args)
+        if args.command == "plan":
+            return _run_plan(args)
 
-    if args.command == "analyze":
-        return _run_analysis(args)
+        if args.command == "analyze":
+            return _run_analysis(args)
 
-    if args.command == "sweep":
-        return _run_sweep(args)
+        if args.command == "sweep":
+            return _run_sweep(args)
 
-    if args.command == "bt":
-        return _run_behavior_tree(args)
+        if args.command == "bt":
+            return _run_behavior_tree(args)
 
-    if args.command == "library":
-        return _run_library(args)
+        if args.command == "library":
+            return _run_library(args)
 
-    if args.command == "gym":
-        return _run_gym_demo(args)
+        if args.command == "gym":
+            return _run_gym_demo(args)
 
-    if args.command == "multi":
-        return _run_multi(args)
+        if args.command == "multi":
+            return _run_multi(args)
 
-    if args.command == "scenario":
-        return _run_scenario(args)
+        if args.command == "scenario":
+            return _run_scenario(args)
 
-    if args.command == "grasp":
-        return _run_grasp(args)
+        if args.command == "grasp":
+            return _run_grasp(args)
 
-    task = TaskDefinition.from_file(args.task_file)
-    return _execute_task_definition(task, args)
+        task = TaskDefinition.from_file(args.task_file)
+        return _execute_task_definition(task, args)
+    except (ModuleNotFoundError, RuntimeError, ValueError) as exc:
+        print(f"error: {exc}")
+        return 1
 
 
 def _load_robot(payload: dict) -> RobotModel:
@@ -390,7 +394,7 @@ def _run_gym_demo(args: argparse.Namespace) -> int:
         import gymnasium as gym
         from optisim.gym_env import RecordEpisode, register_optisim_env
     except ModuleNotFoundError:
-        print("gymnasium support is not installed. Install with `pip install optisim[gym]`.")
+        print("gymnasium support is not installed. Install with `pip install optisim[rl]`.")
         return 1
 
     env_id = register_optisim_env(

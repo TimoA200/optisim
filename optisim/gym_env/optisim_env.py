@@ -52,7 +52,7 @@ class TaskTargets:
 def _require_gymnasium() -> None:
     if gym is None or spaces is None:
         raise ModuleNotFoundError(
-            "gymnasium is required for optisim.gym_env. Install with `pip install optisim[gym]`."
+            "gymnasium is required for optisim.gym_env. Install with `pip install optisim[rl]`."
         )
 
 

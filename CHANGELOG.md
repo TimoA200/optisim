@@ -1,0 +1,33 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
+
+## [0.2.0] - 2026-03-17
+
+### Added
+
+- Built-in 31-DOF humanoid robot model with FK, damped-least-squares IK, and URDF loading support.
+- Deterministic step-based simulation engine with task validation, execution recording, and replay.
+- Task authoring APIs for action primitives, fluent composition, YAML/JSON task definitions, and a built-in task library.
+- Motion-planning utilities including RRT, RRT-Connect, and path smoothing.
+- Behavior-tree execution with YAML-defined structured task logic.
+- Grasp planning, contact analysis, force-closure checks, and reusable gripper presets.
+- Multi-robot coordination, dependency-aware task scheduling, and shared-world execution.
+- Safety monitoring, sensor simulation, lightweight dynamics analysis, analytics, and Gymnasium integration.
+- Terminal, matplotlib, and web visualization backends.
+- Expanded integration coverage for end-to-end execution, CLI flows, IK/FK consistency, and recording replay.
+
+### Changed
+
+- Improved task-file parsing and schema validation so malformed YAML/JSON surfaces actionable errors.
+- Improved IK failure reporting to distinguish reachability, joint-limit, and solver-stall cases.
+- Standardized optional dependency guidance for terminal and web visualization imports.
+- Refreshed packaging metadata, optional dependency groups, and public-release documentation.
+
+## [0.1.0] - 2026-03-17
+
+### Added
+
+- Initial public alpha release of `optisim` with core task planning, humanoid simulation, and CLI support.

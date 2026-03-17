@@ -180,9 +180,23 @@ class ExecutionEngine:
             steps += 1
             if steps > 200:
                 break
-        if not ik_result.success and not targets:
-            raise ValueError(f"ik failed for action targeting '{action.target}'")
+        if not self._ik_result_is_actionable(ik_result, position_only=action.pose is None):
+            reason = ik_result.failure_reason or "unknown reason"
+            raise ValueError(
+                f"ik failed for action targeting '{action.target}' with end effector "
+                f"'{action.end_effector}': {reason}"
+            )
         return max(steps, 1)
+
+    @staticmethod
+    def _ik_result_is_actionable(ik_result: "IKResult", *, position_only: bool) -> bool:
+        """Accept numerically imperfect IK results when they are still usable for execution."""
+
+        if ik_result.success:
+            return True
+        if position_only:
+            return ik_result.position_error <= 0.05
+        return ik_result.position_error <= 0.01 and ik_result.orientation_error <= 0.05
 
     def _move_object(
         self,
