@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 [![Tests](https://github.com/TimoA200/optisim/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/TimoA200/optisim/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/badge/PyPI-placeholder-0A66C2)](https://pypi.org/project/optisim/)
+[![PyPI](https://img.shields.io/pypi/v/optisim)](https://pypi.org/project/optisim/)
 
 [![Demo](https://asciinema.org/a/kgoftmbpQDy2bdc5.svg)](https://asciinema.org/a/kgoftmbpQDy2bdc5)
 
