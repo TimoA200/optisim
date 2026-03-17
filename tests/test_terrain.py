@@ -285,4 +285,4 @@ def test_top_level_optisim_exports_terrain_module_and_version() -> None:
     import optisim
 
     assert optisim.terrain is terrain
-    assert optisim.__version__ == "0.24.0"
+    assert optisim.__version__ == "0.25.0"

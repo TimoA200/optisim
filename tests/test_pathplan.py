@@ -286,4 +286,4 @@ def test_top_level_optisim_exports_pathplan_classes() -> None:
 
 def test_top_level_optisim_exports_pathplan_module_and_version() -> None:
     assert optisim.pathplan is pathplan
-    assert optisim.__version__ == "0.24.0"
+    assert optisim.__version__ == "0.25.0"

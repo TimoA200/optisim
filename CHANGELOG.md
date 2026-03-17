@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.25.0] - 2026-03-17
+
+### Added
+
+- Added `optisim.gait`: `GaitPhase`, `LegCycle`, `GaitPattern`, `CPGOscillator`, and `GaitController`.
+- Added gait-cycle timing helpers for bipedal walking/running and quadrupedal trotting patterns.
+- Added pytest coverage for gait phase timing, controller contact states, oscillator stepping, and top-level package exports.
+
 ## [0.24.0] - 2026-03-17
 
 ### Added

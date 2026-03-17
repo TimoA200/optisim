@@ -14,6 +14,7 @@ from . import dexterous as dexterous
 from . import energy as energy
 from . import export as export
 from . import footstep as footstep
+from . import gait as gait
 from . import language as language
 from . import occupancy as occupancy
 from . import pathplan as pathplan
@@ -74,6 +75,7 @@ from optisim.grasp import (
 )
 from optisim.estimation import EKFConfig, RobotState, StateEstimationPipeline, build_estimator
 from optisim.export import BenchmarkExporter, ExportFormat, SceneExport, SceneExporter, TrajectoryExport, TrajectoryExporter
+from optisim.gait import CPGOscillator, GaitController, GaitPattern, GaitPhase, LegCycle
 from optisim.library import TaskCatalog
 from optisim.lfd import (
     DemoStep,
@@ -206,6 +208,7 @@ __all__ = [
     "energy",
     "export",
     "footstep",
+    "gait",
     "language",
     "occupancy",
     "pathplan",
@@ -306,6 +309,11 @@ __all__ = [
     "TrajectoryExporter",
     "SceneExporter",
     "BenchmarkExporter",
+    "GaitPhase",
+    "LegCycle",
+    "GaitPattern",
+    "CPGOscillator",
+    "GaitController",
     "DemoStep",
     "Demonstration",
     "DemonstrationLibrary",
@@ -451,4 +459,4 @@ __all__ = [
     "WorldModelCollector",
 ]
 
-__version__ = "0.24.0"
+__version__ = "0.25.0"

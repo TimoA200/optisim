@@ -293,4 +293,4 @@ def test_optisim_exports_occupancy_module() -> None:
 
 
 def test_package_version_matches_new_release() -> None:
-    assert optisim.__version__ == "0.24.0"
+    assert optisim.__version__ == "0.25.0"
